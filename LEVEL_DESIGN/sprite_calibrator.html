@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Daphnia Sprite Calibrator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a14; color: #ddd; font-family: monospace; display: flex; height: 100vh; overflow: hidden; }
+
+  #canvas-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #080810;
+  }
+  canvas { border: 1px solid #222; cursor: crosshair; }
+
+  #panel {
+    width: 320px;
+    background: #12121e;
+    border-left: 1px solid #2a2a44;
+    overflow-y: auto;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  h2 { color: #7af; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  h3 { color: #aaa; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #2a2a44; padding-bottom: 4px; margin-top: 6px; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .row label { width: 120px; color: #8af; flex-shrink: 0; }
+  .row input[type=range] { flex: 1; accent-color: #4af; }
+  .row .val { width: 48px; text-align: right; color: #ff9; font-size: 11px; }
+
+  #output {
+    background: #0a0a16;
+    border: 1px solid #2a2a44;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: #afc;
+    white-space: pre;
+  }
+
+  button {
+    background: #1e3a5f;
+    border: 1px solid #3a6aaf;
+    color: #adf;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 12px;
+  }
+  button:hover { background: #2a4a7f; }
+
+  .hint { font-size: 10px; color: #666; }
+  .section { display: flex; flex-direction: column; gap: 6px; }
+
+  .file-row { display: flex; gap: 6px; align-items: center; }
+  .file-row input[type=file] { font-size: 11px; color: #aaa; flex: 1; }
+
+  .checkbox-row { display: flex; gap: 8px; align-items: center; font-size: 12px; }
+  .checkbox-row label { color: #8af; }
+</style>
+</head>
+<body>
+
+<div id="canvas-wrap">
+  <canvas id="c" width="600" height="480"></canvas>
+</div>
+
+<div id="panel">
+  <h2>🦐 Daphnia Calibrator</h2>
+
+  <div class="section">
+    <h3>Načíst obrázek</h3>
+    <div class="file-row">
+      <input type="file" id="imgFile" accept="image/*">
+    </div>
+    <div class="hint">Nebo se obrázek načte automaticky z ./src/Daphnia/daphnia.png</div>
+  </div>
+
+  <div class="section">
+    <h3>Hitbox (body anchor)</h3>
+    <div class="hint">Posuň cyan kříž na střed těla daphnie</div>
+    <div class="row">
+      <label>bodyU (X)</label>
+      <input type="range" id="bodyU" min="0" max="1" step="0.001" value="0.57">
+      <span class="val" id="bodyU_v">0.570</span>
+    </div>
+    <div class="row">
+      <label>bodyV (Y)</label>
+      <input type="range" id="bodyV" min="0" max="1" step="0.001" value="0.52">
+      <span class="val" id="bodyV_v">0.520</span>
+    </div>
+    <div class="row">
+      <label>radius (px)</label>
+      <input type="range" id="radius" min="10" max="80" step="1" value="25">
+      <span class="val" id="radius_v">25</span>
+    </div>
+    <div class="row">
+      <label>scale</label>
+      <input type="range" id="scale" min="0.5" max="6" step="0.01" value="2.75">
+      <span class="val" id="scale_v">2.750</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Mouth anchor</h3>
+    <div class="hint">Posuň červený bod na ústní otvor</div>
+    <div class="row">
+      <label>mouthU (X)</label>
+      <input type="range" id="mouthU" min="0" max="1" step="0.001" value="0.83">
+      <span class="val" id="mouthU_v">0.830</span>
+    </div>
+    <div class="row">
+      <label>mouthV (Y)</label>
+      <input type="range" id="mouthV" min="0" max="1" step="0.001" value="0.34">
+      <span class="val" id="mouthV_v">0.340</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Rotace</h3>
+    <div class="row">
+      <label>rotationOffset</label>
+      <input type="range" id="rotOff" min="-3.14" max="3.14" step="0.01" value="-0.18">
+      <span class="val" id="rotOff_v">-0.18</span>
+    </div>
+    <div class="row">
+      <label>simulace úhlu</label>
+      <input type="range" id="simAngle" min="-3.14" max="3.14" step="0.01" value="0">
+      <span class="val" id="simAngle_v">0.00</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Debug vrstvy</h3>
+    <div class="checkbox-row">
+      <input type="checkbox" id="showSprite" checked>
+      <label for="showSprite">sprite</label>
+      <input type="checkbox" id="showBox" checked>
+      <label for="showBox">bounding box</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="showBody" checked>
+      <label for="showBody">body hitbox</label>
+      <input type="checkbox" id="showMouth" checked>
+      <label for="showMouth">mouth dot</label>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="showMouthLine" checked>
+      <label for="showMouthLine">mouth line</label>
+      <input type="checkbox" id="showGit" checked>
+      <label for="showGit">GIT circle</label>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Výsledné hodnoty</h3>
+    <pre id="output"></pre>
+    <button onclick="copyOutput()">📋 Kopírovat</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const img = new Image();
+img.src = './src/Daphnia/daphnia.png';
+img.onload = render;
+
+document.getElementById('imgFile').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => { img.src = ev.target.result; img.onload = render; };
+  reader.readAsDataURL(f);
+});
+
+function getVal(id) { return parseFloat(document.getElementById(id).value); }
+function getCheck(id) { return document.getElementById(id).checked; }
+
+function updateLabel(id, decimals = 3) {
+  const v = parseFloat(document.getElementById(id).value);
+  document.getElementById(id + '_v').textContent = v.toFixed(decimals);
+}
+
+const sliders = ['bodyU','bodyV','radius','scale','mouthU','mouthV','rotOff','simAngle'];
+const decimals = { bodyU:3, bodyV:3, radius:0, scale:3, mouthU:3, mouthV:3, rotOff:2, simAngle:2 };
+
+sliders.forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => { updateLabel(id, decimals[id]); render(); });
+});
+
+['showSprite','showBox','showBody','showMouth','showMouthLine','showGit'].forEach(id => {
+  document.getElementById(id).addEventListener('change', render);
+});
+
+// allow click on canvas to set bodyU/bodyV
+canvas.addEventListener('click', e => {
+  // find where body anchor currently is, let right-click set mouth
+});
+
+function render() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#080810';
+  ctx.fillRect(0, 0, W, H);
+
+  const bodyU    = getVal('bodyU');
+  const bodyV    = getVal('bodyV');
+  const radius   = getVal('radius');
+  const scale    = getVal('scale');
+  const mouthU   = getVal('mouthU');
+  const mouthV   = getVal('mouthV');
+  const rotOff   = getVal('rotOff');
+  const simAngle = getVal('simAngle');
+
+  const cx = W / 2, cy = H / 2;
+  const totalAngle = simAngle + rotOff;
+
+  const sw = img.naturalWidth || 1280;
+  const sh = img.naturalHeight || 1024;
+  const drawW = radius * scale * 2.0;
+  const drawH = drawW * (sh / sw);
+  const anchorX = drawW * bodyU;
+  const anchorY = drawH * bodyV;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(totalAngle);
+
+  // sprite
+  if (getCheck('showSprite') && img.complete && img.naturalWidth) {
+    ctx.drawImage(img, 0, 0, sw, sh, -anchorX, -anchorY, drawW, drawH);
+  }
+
+  // bounding box
+  if (getCheck('showBox')) {
+    ctx.strokeStyle = 'rgba(0,255,255,0.6)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-anchorX, -anchorY, drawW, drawH);
+  }
+
+  // mouth dot (sprite-space)
+  if (getCheck('showMouth')) {
+    const mx = drawW * mouthU - anchorX;
+    const my = drawH * mouthV - anchorY;
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255,30,30,0.95)';
+    ctx.arc(mx, my, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // label
+    ctx.fillStyle = '#f88';
+    ctx.font = '10px monospace';
+    ctx.fillText('mouth', mx + 6, my - 4);
+  }
+
+  ctx.restore();
+
+  // body hitbox (world space)
+  if (getCheck('showBody')) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,255,255,0.95)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // center cross
+    ctx.strokeStyle = 'rgba(0,255,255,0.9)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx-10,cy); ctx.lineTo(cx+10,cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,cy-10); ctx.lineTo(cx,cy+10); ctx.stroke();
+  }
+
+  // GIT circle
+  if (getCheck('showGit')) {
+    const r2 = radius * 0.52;
+    const oppAngle = simAngle + Math.PI;
+    const dist = radius - r2 * 0.78;
+    const gcx = cx + Math.cos(oppAngle) * dist;
+    const gcy = cy + Math.sin(oppAngle) * dist;
+    ctx.beginPath();
+    ctx.arc(gcx, gcy, r2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(200,80,0,0.25)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,190,80,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // mouth line (world space — rotated by simAngle)
+  if (getCheck('showMouthLine')) {
+    const mouthWorldX = cx + Math.cos(simAngle) * radius;
+    const mouthWorldY = cy + Math.sin(simAngle) * radius;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(mouthWorldX, mouthWorldY);
+    ctx.strokeStyle = 'rgba(255,220,130,0.8)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(mouthWorldX, mouthWorldY, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fill();
+  }
+
+  updateOutput(bodyU, bodyV, mouthU, mouthV, scale, rotOff);
+}
+
+function updateOutput(bU, bV, mU, mV, sc, ro) {
+  document.getElementById('output').textContent =
+`const DAPHNIA_SPRITE = {
+  sx: 0, sy: 0,
+  sw: 1280, sh: 1024,
+
+  bodyU: ${bU.toFixed(3)},
+  bodyV: ${bV.toFixed(3)},
+
+  mouthU: ${mU.toFixed(3)},
+  mouthV: ${mV.toFixed(3)},
+
+  scale: ${sc.toFixed(3)},
+  rotationOffset: ${ro.toFixed(3)},
+
+  debug: true
+};`;
+}
+
+function copyOutput() {
+  const txt = document.getElementById('output').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector('button');
+    btn.textContent = '✅ Zkopírováno!';
+    setTimeout(() => btn.textContent = '📋 Kopírovat', 1500);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

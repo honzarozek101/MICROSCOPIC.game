@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "type": "StentorPreset",
+  "entityType": "Stentor",
+  "id": "elongated",
+  "name": "Elongated",
+  "orderIndex": 3,
+  "circleRatios": [
+    {
+      "dxR": 0,
+      "dyR": 0,
+      "rR": 1
+    },
+    {
+      "dxR": 0,
+      "dyR": 1.1,
+      "rR": 0.55
+    },
+    {
+      "dxR": 0,
+      "dyR": 2,
+      "rR": 0.28
+    }
+  ]
+}

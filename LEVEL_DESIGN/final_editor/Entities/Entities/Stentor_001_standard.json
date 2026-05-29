@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "type": "StentorPreset",
+  "entityType": "Stentor",
+  "id": "standard",
+  "name": "Standard",
+  "orderIndex": 1,
+  "circleRatios": [
+    {
+      "dxR": 0,
+      "dyR": 0,
+      "rR": 1
+    },
+    {
+      "dxR": 0,
+      "dyR": 0.9,
+      "rR": 0.65
+    },
+    {
+      "dxR": 0,
+      "dyR": 1.6,
+      "rR": 0.38
+    }
+  ]
+}

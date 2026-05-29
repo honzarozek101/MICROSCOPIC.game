@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "type": "ComposedEntity",
+  "name": "composed_entity_01",
+  "spriteIndex": 1,
+  "spriteSubfolder": "ComposedEntity_01",
+  "spriteScale": 1,
+  "spriteRotationOffset": 0,
+  "spriteBodyU": 0.5,
+  "spriteBodyV": 0.5,
+  "spriteReferenceRadius": 506.09345443444635,
+  "spriteDebug": true,
+  "anchorMode": "top-left",
+  "bounds": {
+    "minX": 259,
+    "minY": 121,
+    "maxX": 1271.1869088688927,
+    "maxY": 448.17748528886244,
+    "width": 1012.1869088688927,
+    "height": 327.17748528886244
+  },
+  "entities": [
+    {
+      "type": "Player",
+      "radius": 8.188863040676694,
+      "clickForce": 0.9,
+      "absorptionFactor": 0.99,
+      "splitRadius": 51,
+      "splitChildRadius": 14,
+      "splitMinParentRadius": 18,
+      "splitLaunchSpeed": 3.2,
+      "splitParentKick": 1.4,
+      "xNorm": 0.56448,
+      "yNorm": 0.25612,
+      "xBgNorm": 0.564482,
+      "yBgNorm": 0.256117,
+      "offsetX": 873.413,
+      "offsetY": 143.508
+    },
+    {
+      "type": "ParticleZone",
+      "radius": 50.078340143564795,
+      "minSize": 10,
+      "maxSize": 25,
+      "spawnIntervalMs": 1800,
+      "growthDurationMs": 1200,
+      "spawnArcCenterDeg": 0,
+      "spawnArcSpanDeg": 360,
+      "spriteIndex": 1,
+      "xNorm": 0.68307,
+      "yNorm": 0.43554,
+      "xBgNorm": 0.683073,
+      "yBgNorm": 0.43554,
+      "offsetX": 1012.187,
+      "offsetY": 327.177
+    },
+    {
+      "type": "Obstacle",
+      "radius": 85,
+      "offsetX": 0,
+      "offsetY": 108
+    },
+    {
+      "type": "Obstacle",
+      "radius": 40,
+      "_presetId": "obstacle_1776521961311",
+      "_presetName": "Obstacle 1",
+      "offsetX": 153,
+      "offsetY": 0
+    }
+  ],
+  "width": 1012.1869088688927,
+  "height": 327.17748528886244,
+  "radius": 531.8494951979643,
+  "id": "composedentity_composed_entity_01"
+}

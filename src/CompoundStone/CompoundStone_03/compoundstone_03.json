@@ -1,0 +1,33 @@
+{
+  "type": "ComposedStone",
+  "x": 724,
+  "y": 278,
+  "radius": 84.86520991955976,
+  "circles": [
+    {
+      "dx": 0,
+      "dy": 0,
+      "r": 51
+    },
+    {
+      "dx": 49,
+      "dy": -17,
+      "r": 33
+    },
+    {
+      "dx": -48,
+      "dy": 16,
+      "r": 32
+    }
+  ],
+  "instanceIndex": 3,
+  "_presetId": "composedstone_02",
+  "_presetName": "ComposedStone 02",
+  "spriteIndex": 3,
+  "spriteSubfolder": "CompoundStone_03",
+  "spriteScale": 0.83,
+  "spriteRotationOffset": -2.55,
+  "spriteBodyU": 0.47,
+  "spriteBodyV": 0.5,
+  "spriteReferenceRadius": 80
+}

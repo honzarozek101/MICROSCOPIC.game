@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "type": "ComposedEntity",
+  "name": "composed_entity_04",
+  "spriteIndex": 4,
+  "spriteSubfolder": "ComposedEntity_04",
+  "spriteScale": 1,
+  "spriteRotationOffset": 0,
+  "spriteBodyU": 0.5,
+  "spriteBodyV": 0.5,
+  "spriteReferenceRadius": 61.5,
+  "spriteDebug": true,
+  "anchorMode": "top-left",
+  "bounds": {
+    "minX": 532,
+    "minY": 307,
+    "maxX": 655,
+    "maxY": 327,
+    "width": 123,
+    "height": 20
+  },
+  "entities": [
+    {
+      "type": "Obstacle",
+      "radius": 40,
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "type": "Obstacle",
+      "radius": 40,
+      "offsetX": 65,
+      "offsetY": 12
+    },
+    {
+      "type": "Obstacle",
+      "radius": 40,
+      "offsetX": 123,
+      "offsetY": 20
+    }
+  ],
+  "width": 123,
+  "height": 20,
+  "radius": 62.30770417853638,
+  "id": "composedentity_composed_entity_04"
+}

@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>microscopic.game</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23091213'/%3E%3Ccircle cx='32' cy='32' r='21' fill='%236f807f'/%3E%3Ccircle cx='32' cy='32' r='13' fill='%2382fff3' fill-opacity='.82'/%3E%3Ccircle cx='37' cy='27' r='5' fill='%23ffffff' fill-opacity='.75'/%3E%3C/svg%3E" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #484d4d;
+      --panel: rgba(8, 14, 16, 0.92);
+      --panel-2: rgba(14, 22, 25, 0.94);
+      --border: rgba(130, 255, 243, 0.16);
+      --border-strong: rgba(130, 255, 243, 0.32);
+      --text: #edf7f6;
+      --text-soft: #94aca8;
+      --text-dim: #697a77;
+      --accent: #82fff3;
+      --accent-soft: rgba(130, 255, 243, 0.12);
+      --danger: #ff9db2;
+      --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      overflow: hidden;
+      font-family: Inter, "JetBrains Mono", monospace;
+      color: var(--text);
+    }
+
+    canvas { display: block; touch-action: manipulation; }
+
+    #canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      background: var(--bg);
+    }
+
+    body.session-active #menu-toggle,
+    body.session-active #menu-drawer {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    body:not(.session-active) #menu-toggle,
+    body:not(.session-active) #menu-drawer {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    body.drag-over::after {
+      content: 'Drop level JSON here';
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: var(--accent);
+      font-family: inherit;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: rgba(6, 10, 12, 0.78);
+      border: 3px dashed rgba(130, 255, 243, 0.45);
+      z-index: 100;
+      pointer-events: none;
+      text-transform: uppercase;
+    }
+
+    #file-input { display: none; }
+
+    #launcher {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: start center;
+      padding: 48px 20px 40px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(124, 255, 220, 0.06), transparent 28%),
+        radial-gradient(circle at 80% 30%, rgba(103, 160, 255, 0.05), transparent 32%),
+        radial-gradient(circle at 50% 80%, rgba(110, 255, 211, 0.04), transparent 38%),
+        linear-gradient(180deg, rgba(13, 23, 25, 0.92) 0%, rgba(10, 17, 19, 0.95) 34%, rgba(5, 8, 9, 0.98) 100%);
+      transition: opacity 0.24s ease, visibility 0.24s ease;
+      backdrop-filter: blur(6px);
+      overflow-y: auto;
+    }
+
+    body.session-active #launcher {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #launcher::before,
+    #launcher::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    #launcher::before {
+      background:
+        linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.02) 24%, transparent 28%),
+        linear-gradient(90deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 100%),
+        linear-gradient(0deg, rgba(255,255,255,0.01) 0 1px, transparent 1px 100%);
+      background-size: auto, 120px 120px, 120px 120px;
+      opacity: 0.35;
+      mix-blend-mode: screen;
+    }
+
+    #launcher::after {
+      background-image:
+        radial-gradient(rgba(255,255,255,0.045) 0.7px, transparent 0.8px),
+        radial-gradient(rgba(130,255,243,0.03) 0.7px, transparent 0.9px);
+      background-size: 7px 7px, 11px 11px;
+      background-position: 0 0, 3px 2px;
+      opacity: 0.12;
+      animation: launcher-noise 18s linear infinite;
+    }
+
+    @keyframes launcher-noise {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-14px, 10px, 0); }
+    }
+
+    .launcher-shell {
+      position: relative;
+      z-index: 1;
+      width: min(92vw, 980px);
+      min-height: min(84vh, 720px);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 26px;
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: linear-gradient(180deg, rgba(8,15,17,0.76), rgba(5,9,10,0.84));
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.015), 0 22px 80px rgba(0,0,0,0.48);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .launcher-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(130,255,243,0.18), rgba(255,255,255,0.02), rgba(130,255,243,0.08));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .launcher-top {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 14px;
+      padding-top: 6px;
+      justify-items: center;
+    }
+
+    .launcher-brandline {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      flex-wrap: nowrap;
+      gap: 0;
+      width: 100%;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .launcher-left,
+    .launcher-right {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      min-height: 560px;
+    }
+
+    .launcher-main {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+    }
+
+    .launcher-left {
+      padding: 30px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        radial-gradient(circle at 24% 24%, rgba(130,255,243,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.005));
+      border: 1px solid rgba(255,255,255,0.045);
+    }
+
+    .launcher-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 16px;
+    }
+
+    .launcher-brand {
+      margin: 0;
+      font-size: clamp(34px, 6.6vw, 88px);
+      line-height: 1.02;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-shadow: 0 0 24px rgba(130,255,243,0.05);
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+
+    .launcher-brand-suffix {
+      font-size: clamp(18px, 1.8vw, 24px);
+      line-height: 1;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(130,255,243,0.28);
+      transform: translateY(-0.2em);
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
+    .launcher-brand .dot {
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(130,255,243,0.28);
+    }
+
+    .launcher-subtitle {
+      max-width: 34rem;
+      margin-top: 18px;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.75;
+      letter-spacing: 0.03em;
+    }
+
+    .launcher-subtitle[hidden] {
+      display: none;
+    }
+
+    .launcher-specimen-panel {
+      margin-top: 22px;
+      max-width: 34rem;
+      padding: 18px 18px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015)),
+        rgba(9, 17, 19, 0.24);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    .launcher-specimen-kicker {
+      color: var(--accent);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .launcher-specimen-title {
+      margin-top: 10px;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+
+    .launcher-specimen-copy {
+      margin-top: 10px;
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .launcher-setting-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .launcher-setting {
+      display: grid;
+      gap: 6px;
+    }
+
+    .launcher-setting-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .launcher-setting-label {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .launcher-setting-value {
+      color: var(--accent);
+      font-size: 11px;
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    .launcher-setting-note {
+      color: var(--text-dim);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .launcher-primary-action {
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background:
+        linear-gradient(180deg, rgba(24,30,33,0.96), rgba(10,14,16,0.96));
+      color: rgba(242,246,247,0.96);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      box-shadow:
+        0 10px 22px rgba(0,0,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .launcher-primary-action:hover,
+    .launcher-primary-action:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.2);
+      background:
+        linear-gradient(180deg, rgba(30,38,41,0.98), rgba(14,18,21,0.98));
+      outline: none;
+    }
+
+    .launcher-primary-action[disabled] {
+      opacity: 0.45;
+      cursor: wait;
+      transform: none;
+    }
+
+    .launcher-statusline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .launcher-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 999px;
+      color: var(--text-soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      background: rgba(255,255,255,0.025);
+    }
+
+    .launcher-chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(130,255,243,0.4);
+      opacity: 0.9;
+    }
+
+    .launcher-scope {
+      position: relative;
+      margin-top: 24px;
+      width: min(100%, 480px);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      border: 1px solid rgba(210,220,224,0.95);
+      background:
+        radial-gradient(circle at 50% 46%, rgba(244,248,249,0.96) 0%, rgba(235,241,243,0.98) 58%, rgba(214,223,227,1) 100%);
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 0 12px rgba(255,255,255,0.72),
+        inset 0 0 0 26px rgba(214,221,224,0.9),
+        inset 0 0 34px rgba(92,108,116,0.16),
+        0 24px 44px rgba(0,0,0,0.16);
+    }
+
+    .launcher-scope-cta {
+      position: absolute;
+      top: 12%;
+      left: 50%;
+      z-index: 3;
+      transform: translateX(-50%);
+    }
+
+    .launcher-preview-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .launcher-scope-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 58%, rgba(203,213,218,0.16) 76%, rgba(120,132,140,0.28) 100%);
+    }
+
+    .crosshair-x,
+    .crosshair-y {
+      position: absolute;
+      background-color: rgba(116,136,146,0.34);
+      box-shadow: 0 0 10px rgba(255,255,255,0.18);
+    }
+
+    .crosshair-x {
+      top: 50%;
+      left: 8%;
+      right: 8%;
+      height: 2px;
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.05) 0 10px,
+        rgba(96,112,121,0.45) 10px 12px
+      );
+    }
+
+    .crosshair-y {
+      left: 50%;
+      top: 8%;
+      bottom: 8%;
+      width: 2px;
+      background-image: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.05) 0 10px,
+        rgba(96,112,121,0.45) 10px 12px
+      );
+    }
+
+    .launcher-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-top: 18px;
+      color: var(--text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .launcher-pulse {
+      color: var(--text-soft);
+    }
+
+    .launcher-right {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.005)),
+        rgba(7, 13, 15, 0.74);
+      border: 1px solid rgba(130, 255, 243, 0.08);
+    }
+
+    .launcher-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 22px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(130,255,243,0.08);
+    }
+
+    .launcher-panel-copy {
+      display: grid;
+      gap: 6px;
+    }
+
+    .launcher-panel-title {
+      font-size: 14px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 500;
+      line-height: 1.15;
+      color: var(--text);
+    }
+
+    .launcher-panel-subtitle {
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .launcher-version {
+      color: var(--accent);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border: 1px solid rgba(130,255,243,0.16);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(130,255,243,0.06);
+      white-space: nowrap;
+    }
+
+    .launcher-menu {
+      display: grid;
+      gap: 12px;
+    }
+
+    .launcher-btn {
+      width: 100%;
+      text-align: left;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.022);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .launcher-btn:hover,
+    .launcher-btn:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(130,255,243,0.26);
+      background: rgba(130,255,243,0.07);
+      outline: none;
+    }
+
+    .launcher-btn[disabled] {
+      opacity: 0.45;
+      cursor: wait;
+      transform: none;
+    }
+
+    .launcher-btn-label {
+      display: block;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .launcher-btn-meta {
+      display: block;
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .launcher-subpanels {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .launcher-subpanel {
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .launcher-subpanel h3 {
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .launcher-subpanel p {
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .launcher-status {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.02);
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 1.6;
+      min-height: 64px;
+    }
+
+    .launcher-status[data-tone="error"] {
+      border-color: rgba(255,157,178,0.25);
+      color: #ffdce4;
+      background: rgba(255,157,178,0.08);
+    }
+
+    .launcher-status[data-tone="ready"] {
+      border-color: rgba(130,255,243,0.15);
+      color: var(--text);
+    }
+
+    .launcher-microcopy {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 14px;
+      margin-top: 18px;
+      color: var(--text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .launcher-microcopy strong {
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+
+    #menu-toggle {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(7, 13, 15, 0.75);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 40;
+      transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+    }
+    #menu-toggle:hover {
+      border-color: var(--border-strong);
+      background: rgba(10, 18, 20, 0.9);
+      transform: translateY(-1px);
+    }
+    #menu-toggle span,
+    #menu-toggle span::before,
+    #menu-toggle span::after {
+      display: block;
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background: var(--text);
+      position: relative;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      content: "";
+    }
+    #menu-toggle span::before { position: absolute; top: -6px; }
+    #menu-toggle span::after  { position: absolute; top: 6px; }
+    body.menu-open #menu-toggle span            { background: transparent; }
+    body.menu-open #menu-toggle span::before    { transform: translateY(6px) rotate(45deg); }
+    body.menu-open #menu-toggle span::after     { transform: translateY(-6px) rotate(-45deg); }
+
+    #menu-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: min(420px, 92vw);
+      transform: translateX(-105%);
+      transition: transform 0.24s ease;
+      z-index: 35;
+      background: linear-gradient(180deg, rgba(10, 18, 20, 0.96), rgba(7, 12, 14, 0.98));
+      border-right: 1px solid var(--border);
+      box-shadow: 18px 0 50px rgba(0,0,0,0.35);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(10px);
+    }
+    body.menu-open #menu-drawer { transform: translateX(0); }
+
+    #menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.38);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 30;
+    }
+    body.menu-open #menu-backdrop { opacity: 1; pointer-events: auto; }
+
+    .drawer-header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.02);
+    }
+    .drawer-title {
+      font-size: 20px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 300;
+      color: var(--text);
+    }
+    .drawer-subtitle {
+      margin-top: 6px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .drawer-content {
+      padding: 14px;
+      overflow: auto;
+      display: grid;
+      gap: 10px;
+      flex: 1;
+    }
+
+    details.menu-section {
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.025);
+      overflow: hidden;
+    }
+    details.menu-section[open] {
+      border-color: var(--border);
+      box-shadow: inset 0 0 0 1px rgba(130,255,243,0.03);
+    }
+    details.menu-section > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      user-select: none;
+      background: rgba(255,255,255,0.018);
+    }
+    details.menu-section > summary::-webkit-details-marker { display: none; }
+    details.menu-section > summary::after { content: "+"; color: var(--accent); font-size: 16px; line-height: 1; }
+    details.menu-section[open] > summary::after { content: "−"; }
+
+    .section-body {
+      padding: 12px 14px 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .select-shell {
+      display: grid;
+      gap: 8px;
+    }
+
+    .select-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .menu-select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .menu-select:hover,
+    .menu-select:focus-visible {
+      border-color: var(--border-strong);
+      background: rgba(130,255,243,0.08);
+    }
+
+    .theme-preview-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(130,255,243,0.18);
+      background: rgba(130,255,243,0.08);
+      color: var(--accent);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .theme-preview-chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 12px rgba(130,255,243,0.42);
+    }
+
+    /* Instance cards — each live entity gets a card */
+    .instance-list { display: grid; gap: 8px; }
+
+    .instance-card {
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.018);
+      overflow: hidden;
+    }
+
+    .instance-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.025);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .instance-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .instance-index {
+      font-size: 10px;
+      font-family: "JetBrains Mono", monospace;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+
+    .instance-controls {
+      padding: 10px 12px 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-size: 11px;
+      font-family: inherit;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--accent-soft);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: rgba(130,255,243,0.18); border-color: var(--border-strong); }
+    .btn.danger { border-color: rgba(255,157,178,0.3); background: rgba(255,157,178,0.08); color: #ffdce4; }
+    .btn.danger:hover { border-color: rgba(255,157,178,0.6); background: rgba(255,157,178,0.14); }
+
+    .status-box {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 5px;
+    }
+
+    .control-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .control-name  { font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text); }
+    .control-value { font-size: 11px; color: var(--accent); font-family: "JetBrains Mono", monospace; }
+    .control-note  { font-size: 10px; line-height: 1.45; color: var(--text-dim); }
+
+    input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+    /* Empty state inside instances section */
+    .empty-note {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 10px 0 4px;
+    }
+
+    .drawer-footer {
+      padding: 12px 14px 14px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      color: var(--text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      background: rgba(255,255,255,0.015);
+    }
+
+    @media (max-width: 640px) {
+      #menu-toggle { top: 12px; left: 12px; }
+      .drawer-title { font-size: 17px; }
+    }
+
+    @media (max-width: 920px) {
+      .launcher-shell {
+        width: min(94vw, 760px);
+        min-height: auto;
+      }
+
+      .launcher-main {
+        grid-template-columns: 1fr;
+      }
+
+      .launcher-left,
+      .launcher-right {
+        min-height: auto;
+      }
+
+      .launcher-scope {
+        width: min(100%, 360px);
+      }
+    }
+
+    @media (max-width: 560px) {
+      #launcher {
+        padding: 28px 14px 28px;
+      }
+
+      .launcher-shell {
+        padding: 14px;
+        gap: 14px;
+        border-radius: 18px;
+      }
+
+      .launcher-left,
+      .launcher-right {
+        padding: 18px;
+        border-radius: 16px;
+      }
+
+      .launcher-brand {
+        font-size: clamp(22px, 7.4vw, 34px);
+        letter-spacing: 0.12em;
+      }
+
+      .launcher-brand-suffix {
+        font-size: 14px;
+      }
+
+      .launcher-btn-label {
+        font-size: 15px;
+      }
+
+      .launcher-footer,
+      .launcher-microcopy {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="launcher">
+    <main class="launcher-shell">
+      <section class="launcher-top">
+        <div class="launcher-eyebrow">Live Field Interface / Bio-Lab Build</div>
+        <div class="launcher-brandline">
+          <h1 class="launcher-brand">Microscopic</h1>
+          <span class="launcher-brand-suffix">.game</span>
+        </div>
+      </section>
+
+      <div class="launcher-main">
+        <section class="launcher-left">
+          <div>
+          <p class="launcher-subtitle" hidden>
+            Configure the observation profile before release. These values are applied to the bundled scene when you
+            start the session, so the specimen enters the field already tuned.
+          </p>
+
+          <div class="launcher-specimen-panel">
+            <div class="launcher-specimen-kicker">Specimen Profile</div>
+            <div class="launcher-specimen-title"><em>Daphnia pulex</em></div>
+            <div class="launcher-specimen-copy">
+              Small planktonic crustacean often used as a freshwater model organism. Tune body size, swim speed,
+              and fertility before loading the curated encounter.
+            </div>
+
+            <div class="launcher-setting-grid">
+              <label class="launcher-setting">
+                <div class="launcher-setting-head">
+                  <span class="launcher-setting-label">Radius</span>
+                  <span class="launcher-setting-value" id="launcher-radius-value">94</span>
+                </div>
+                <input id="launcher-setting-radius" type="range" min="24" max="140" step="1" value="94" />
+                <div class="launcher-setting-note">Controls the body radius used for all bundled Daphnia enemies.</div>
+              </label>
+
+              <label class="launcher-setting">
+                <div class="launcher-setting-head">
+                  <span class="launcher-setting-label">Speed</span>
+                  <span class="launcher-setting-value" id="launcher-speed-value">0.6</span>
+                </div>
+                <input id="launcher-setting-speed" type="range" min="0.05" max="1.6" step="0.01" value="0.6" />
+                <div class="launcher-setting-note">Adjusts baseline swim speed inside the bundled level.</div>
+              </label>
+
+              <label class="launcher-setting">
+                <div class="launcher-setting-head">
+                  <span class="launcher-setting-label">Fertility</span>
+                  <span class="launcher-setting-value" id="launcher-fertility-value">5</span>
+                </div>
+                <input id="launcher-setting-fertility" type="range" min="1" max="12" step="1" value="5" />
+                <div class="launcher-setting-note">Number of projectiles absorbed before an egg can be laid.</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="launcher-scope" aria-hidden="true">
+            <div class="launcher-scope-cta">
+              <button class="launcher-primary-action" id="launcher-play-now" type="button">
+                Play Now
+              </button>
+            </div>
+            <canvas class="launcher-preview-canvas" id="launcher-preview-canvas"></canvas>
+            <div class="launcher-scope-vignette"></div>
+            <div class="crosshair-x"></div>
+            <div class="crosshair-y"></div>
+          </div>
+        </div>
+
+        <div class="launcher-footer">
+          <span class="launcher-pulse">sample suspended / observation stable</span>
+          <span>microscopic.game</span>
+        </div>
+        </section>
+
+        <aside class="launcher-right">
+          <div>
+            <div class="launcher-panel-head">
+              <div class="launcher-panel-copy">
+                <h2 class="launcher-panel-title">Primary Navigation</h2>
+                <div class="launcher-panel-subtitle">Choose how the observation begins</div>
+              </div>
+              <span class="launcher-version">Launcher v0.2</span>
+            </div>
+
+            <nav class="launcher-menu">
+              <button class="launcher-btn" id="launcher-new-game" type="button">
+                <span class="launcher-btn-label">Random Game</span>
+                <span class="launcher-btn-meta">Initialize a fresh randomized organism field and begin the simulation immediately.</span>
+              </button>
+
+              <button class="launcher-btn" id="launcher-load-default" type="button">
+                <span class="launcher-btn-label">Play Now</span>
+                <span class="launcher-btn-meta">Load the bundled scene and apply the current Daphnia tuning profile.</span>
+              </button>
+
+              <button class="launcher-btn" id="launcher-import-json" type="button">
+                <span class="launcher-btn-label">Import JSON</span>
+                <span class="launcher-btn-meta">Open a saved level profile or import a structured JSON world from disk.</span>
+              </button>
+
+              <button class="launcher-btn" id="launcher-level-design" type="button">
+                <span class="launcher-btn-label">Level Design</span>
+                <span class="launcher-btn-meta">Open the level editor to compose scenes, place entities, and export a playable JSON level.</span>
+              </button>
+
+              <button class="launcher-btn" id="launcher-resume" type="button" hidden>
+                <span class="launcher-btn-label">Continue</span>
+                <span class="launcher-btn-meta">Return to the last active session without reinitializing the current world.</span>
+              </button>
+            </nav>
+
+            <div class="launcher-subpanels">
+              <section class="launcher-subpanel">
+                <h3>Load Flow</h3>
+                <p>
+                  Session boot is now explicit: the world waits in standby until you choose a random start, bundled level,
+                  manual JSON import, or level-design workflow.
+                </p>
+              </section>
+
+              <section class="launcher-subpanel">
+                <h3>Interface Notes</h3>
+                <p>
+                  The prototype launcher is preserved as the entry point, while the existing in-game drawer still handles
+                  live tuning once the level is running.
+                </p>
+              </section>
+            </div>
+
+            <div class="launcher-status" id="launcher-status" data-tone="ready">
+              Ready to initialize a session.
+            </div>
+          </div>
+
+          <div class="launcher-microcopy">
+            <span><strong>Mode:</strong> bio-lab launcher</span>
+            <span><strong>Input:</strong> random / bundled / custom json / editor</span>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <button id="menu-toggle" aria-label="Open menu" title="Menu">
+    <span></span>
+  </button>
+
+  <div id="menu-backdrop"></div>
+
+  <aside id="menu-drawer" aria-label="Game menu">
+    <div class="drawer-header">
+      <div class="drawer-title">Microscopic.Game</div>
+      <div class="drawer-subtitle">Live tuning</div>
+    </div>
+
+    <div class="drawer-content">
+
+      <!-- ── Game ──────────────────────────────────────────────── -->
+      <details class="menu-section" open>
+        <summary>Game</summary>
+        <div class="section-body">
+          <div class="row">
+            <button class="btn" onclick="loadRandom()">New Random</button>
+            <button class="btn" onclick="document.getElementById('file-input').click()">Load JSON</button>
+            <button class="btn" id="btn-reload" onclick="reloadLevel()">Reload</button>
+            <button class="btn danger" id="btn-unload" onclick="unloadLevel()">Unload</button>
+          </div>
+          <div class="status-box" id="level-name">no level loaded</div>
+        </div>
+      </details>
+
+      <!-- ── World ─────────────────────────────────────────────── -->
+      <details class="menu-section">
+        <summary>Visuals</summary>
+        <div class="section-body">
+          <label class="select-shell" for="sprite-theme-select">
+            <span class="select-label">Sprite theme</span>
+            <select class="menu-select" id="sprite-theme-select"></select>
+          </label>
+          <div class="theme-preview-chip" id="sprite-theme-chip">Theme</div>
+          <div class="status-box" id="sprite-theme-description">
+            Themes can swap complete spritesheet families while preserving dimensions, anchors and level fit.
+          </div>
+        </div>
+      </details>
+
+      <details class="menu-section">
+        <summary>World</summary>
+        <div class="section-body" id="world-controls"></div>
+      </details>
+
+      <!-- ── Instances ─────────────────────────────────────────── -->
+      <details class="menu-section" open>
+        <summary>Instances</summary>
+        <div class="section-body">
+          <div class="instance-list" id="instance-list">
+            <div class="empty-note">Start a game to see live instances.</div>
+          </div>
+        </div>
+      </details>
+
+    </div><!-- drawer-content -->
+
+    <div class="drawer-footer">Phase 1 — config modularisation</div>
+  </aside>
+
+  <input type="file" id="file-input" accept=".json,application/json" />
+
+  <script type="module">
+    import {
+      initWorld,
+      initWorldFromLevel,
+      updateWorld,
+      drawWorld,
+      shootFromPlayer,
+      resizeWorld,
+      world,
+      toggleLevelDebugOverlay,
+      toggleDebugMode
+    } from "./world.js";
+    import { config } from "./config.js";
+    import { DEFAULTS as PlayerDef  } from "./Player.js";
+    import { DEFAULTS as EnemyDef   } from "./Enemy.js";
+    import { DEFAULTS as MacroDef   } from "./Macrophage.js";
+    import { DEFAULTS as StentorDef } from "./Stentor.js";
+    import { DEFAULTS as ObsDef     } from "./Obstacle.js";
+    import { DEFAULTS as StoneDef   } from "./Stone.js";
+    import {
+      getActiveSpriteTheme,
+      getSpriteThemes,
+      preloadAssetsForLevel,
+      preloadAssetsForRandomSession,
+      preloadCoreSpriteAssets,
+      setActiveSpriteTheme,
+      subscribeSpriteThemeChange
+    } from "./spriteAssets.js";
+
+    const canvas = document.getElementById("canvas");
+    const ctx    = canvas.getContext("2d");
+    const launcherPreviewCanvas = document.getElementById("launcher-preview-canvas");
+    const launcherPreviewCtx    = launcherPreviewCanvas.getContext("2d");
+    const launcherScopeFrame    = document.querySelector(".launcher-scope");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    launcherPreviewCtx.imageSmoothingEnabled = true;
+    launcherPreviewCtx.imageSmoothingQuality = "high";
+    const launcherStatus = document.getElementById("launcher-status");
+    const launcherButtons = Array.from(document.querySelectorAll(".launcher-btn"));
+    const resumeButton = document.getElementById("launcher-resume");
+    const playNowButton = document.getElementById("launcher-play-now");
+    const launcherSettingRadius = document.getElementById("launcher-setting-radius");
+    const launcherSettingSpeed = document.getElementById("launcher-setting-speed");
+    const launcherSettingFertility = document.getElementById("launcher-setting-fertility");
+    const launcherRadiusValue = document.getElementById("launcher-radius-value");
+    const launcherSpeedValue = document.getElementById("launcher-speed-value");
+    const launcherFertilityValue = document.getElementById("launcher-fertility-value");
+    const spriteThemeSelect = document.getElementById("sprite-theme-select");
+    const spriteThemeChip = document.getElementById("sprite-theme-chip");
+    const spriteThemeDescription = document.getElementById("sprite-theme-description");
+
+    let initialized  = false;
+    let currentLevel = null;
+    let levelName    = "";
+    let sessionState = "launcher";
+    let launcherBusy = false;
+    let levelResizeReflowHandle = null;
+    let introLevel = null;
+    let introPreviewReady = false;
+    let spriteAssetsReady = false;
+    let spritePreloadRequestId = 0;
+    let levelRuntimeDebugPending = false;
+
+    // ── helpers ────────────────────────────────────────────────────────────
+
+    function fmt(v) {
+      if (typeof v !== "number" || !Number.isFinite(v)) return String(v);
+      return Number.isInteger(v) ? String(v) : v.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+    }
+
+    function getBounds() {
+      return { width: canvas.width, height: canvas.height };
+    }
+
+    function getLevelPlayfieldRect(levelJson = currentLevel) {
+      const bounds = getBounds();
+      return {
+        x: 0,
+        y: 0,
+        width: bounds.width,
+        height: bounds.height
+      };
+    }
+
+    function getLevelWorldBounds(levelJson = currentLevel) {
+      const refWidth = Number(levelJson?.canvasRef?.width ?? 0);
+      const refHeight = Number(levelJson?.canvasRef?.height ?? 0);
+      if (!(refWidth > 0) || !(refHeight > 0)) return getBounds();
+      return { width: refWidth, height: refHeight };
+    }
+
+    function getLevelInitialViewRef(levelJson = currentLevel) {
+      const worldBounds = getLevelWorldBounds(levelJson);
+      const source = levelJson?.initialView;
+      const width = Number(source?.width ?? worldBounds.width);
+      const height = Number(source?.height ?? worldBounds.height);
+      const viewWidth = Math.min(worldBounds.width, Math.max(1, width));
+      const viewHeight = Math.min(worldBounds.height, Math.max(1, height));
+      return {
+        x: Number.isFinite(Number(source?.x)) ? Number(source.x) : (worldBounds.width - viewWidth) * 0.5,
+        y: Number.isFinite(Number(source?.y)) ? Number(source.y) : (worldBounds.height - viewHeight) * 0.5,
+        width: viewWidth,
+        height: viewHeight
+      };
+    }
+
+    function fitLevelViewToPlayfieldAspect(view, worldBounds, playfield) {
+      const targetAspect = Math.max(0.01, Number(playfield?.width ?? 0) / Math.max(1, Number(playfield?.height ?? 0)));
+      const viewAspect = Math.max(0.01, view.width / Math.max(1, view.height));
+      let width = view.width;
+      let height = view.height;
+
+      if (targetAspect > viewAspect) {
+        width = height * targetAspect;
+        if (width > worldBounds.width) {
+          width = worldBounds.width;
+          height = width / targetAspect;
+        }
+      } else if (targetAspect < viewAspect) {
+        height = width / targetAspect;
+        if (height > worldBounds.height) {
+          height = worldBounds.height;
+          width = height * targetAspect;
+        }
+      }
+
+      width = Math.min(worldBounds.width, Math.max(1, width));
+      height = Math.min(worldBounds.height, Math.max(1, height));
+
+      const centerX = view.x + view.width * 0.5;
+      const centerY = view.y + view.height * 0.5;
+      return {
+        x: Math.min(Math.max(0, centerX - width * 0.5), Math.max(0, worldBounds.width - width)),
+        y: Math.min(Math.max(0, centerY - height * 0.5), Math.max(0, worldBounds.height - height)),
+        width,
+        height
+      };
+    }
+
+    function getLevelCameraRect(levelJson = currentLevel) {
+      const worldBounds = getLevelWorldBounds(levelJson);
+      const playfield = getLevelPlayfieldRect(levelJson);
+      const view = fitLevelViewToPlayfieldAspect(
+        getLevelInitialViewRef(levelJson),
+        worldBounds,
+        playfield
+      );
+      const targetX = Number(world.player?.x);
+      const targetY = Number(world.player?.y);
+      if (!world.camera || Math.abs((world.camera.width ?? 0) - view.width) > 0.5 || Math.abs((world.camera.height ?? 0) - view.height) > 0.5) {
+        world.camera = { x: view.x, y: view.y, width: view.width, height: view.height };
+      }
+
+      let x = Number(world.camera.x) || view.x;
+      let y = Number(world.camera.y) || view.y;
+      const deadZoneX = view.width * 0.32;
+      const deadZoneY = view.height * 0.32;
+      if (Number.isFinite(targetX)) {
+        if (targetX < x + deadZoneX) x = targetX - deadZoneX;
+        else if (targetX > x + view.width - deadZoneX) x = targetX - view.width + deadZoneX;
+      }
+      if (Number.isFinite(targetY)) {
+        if (targetY < y + deadZoneY) y = targetY - deadZoneY;
+        else if (targetY > y + view.height - deadZoneY) y = targetY - view.height + deadZoneY;
+      }
+
+      x = Math.min(Math.max(0, x), Math.max(0, worldBounds.width - view.width));
+      y = Math.min(Math.max(0, y), Math.max(0, worldBounds.height - view.height));
+      world.camera = { x, y, width: view.width, height: view.height };
+      return world.camera;
+    }
+
+    function getActiveSessionBounds() {
+      return currentLevel ? getLevelPlayfieldRect(currentLevel) : getBounds();
+    }
+
+    function captureLevelRuntimeDebug(worldBounds, playfield) {
+      const getBodyCircles = body => {
+        if (!body) return [];
+        if (typeof body._getBodyCircles === "function") return body._getBodyCircles();
+        if (typeof body._getCircles === "function") return body._getCircles();
+        if (Number.isFinite(body.x) && Number.isFinite(body.y) && Number.isFinite(body.radius)) {
+          return [{ cx: body.x, cy: body.y, r: body.radius }];
+        }
+        return [];
+      };
+
+      const getBestPairGap = (a, b) => {
+        let best = null;
+        for (const ac of getBodyCircles(a)) {
+          for (const bc of getBodyCircles(b)) {
+            const dx = bc.cx - ac.cx;
+            const dy = bc.cy - ac.cy;
+            const dist = Math.hypot(dx, dy);
+            const gap = dist - (ac.r + bc.r);
+            if (!best || gap < best.gap) {
+              best = {
+                gap,
+                dist,
+                ac: { cx: ac.cx, cy: ac.cy, r: ac.r },
+                bc: { cx: bc.cx, cy: bc.cy, r: bc.r }
+              };
+            }
+          }
+        }
+        return best;
+      };
+
+      const macrophage = world.macrophages?.[0] ?? null;
+      const enemy = world.enemies?.[0] ?? null;
+      const nearestObstacleGap = macrophage
+        ? (world.obstacles ?? []).reduce((best, obstacle) => {
+            const candidate = getBestPairGap(macrophage, obstacle);
+            return !best || (candidate && candidate.gap < best.gap) ? candidate : best;
+          }, null)
+        : null;
+
+      const sampleParticles = (world.particles ?? [])
+        .filter(p => p && !p.absorbed && !p.isPlayer && !p.isProjectile)
+        .slice(0, 10)
+        .map((p, index) => ({
+          index,
+          x: Number.isFinite(p.x) ? Number(p.x.toFixed(2)) : p.x,
+          y: Number.isFinite(p.y) ? Number(p.y.toFixed(2)) : p.y,
+          radius: Number.isFinite(p.radius) ? Number(p.radius.toFixed(2)) : p.radius
+        }));
+      const snapshot = {
+        levelName,
+        playfield,
+        worldBounds,
+        player: world.player ? {
+          x: Number.isFinite(world.player.x) ? Number(world.player.x.toFixed(2)) : world.player.x,
+          y: Number.isFinite(world.player.y) ? Number(world.player.y.toFixed(2)) : world.player.y,
+          radius: Number.isFinite(world.player.radius) ? Number(world.player.radius.toFixed(2)) : world.player.radius,
+          absorbed: !!world.player.absorbed
+        } : null,
+        enemies: (world.enemies ?? []).slice(0, 3).map((enemy, index) => ({
+          index,
+          x: Number.isFinite(enemy?.x) ? Number(enemy.x.toFixed(2)) : enemy?.x,
+          y: Number.isFinite(enemy?.y) ? Number(enemy.y.toFixed(2)) : enemy?.y,
+          radius: Number.isFinite(enemy?.radius) ? Number(enemy.radius.toFixed(2)) : enemy?.radius,
+          removed: !!enemy?.removed
+        })),
+        macrophages: (world.macrophages ?? []).slice(0, 3).map((entity, index) => ({
+          index,
+          x: Number.isFinite(entity?.x) ? Number(entity.x.toFixed(2)) : entity?.x,
+          y: Number.isFinite(entity?.y) ? Number(entity.y.toFixed(2)) : entity?.y,
+          radius: Number.isFinite(entity?.radius) ? Number(entity.radius.toFixed(2)) : entity?.radius
+        })),
+        particles: sampleParticles,
+        macrophageProximity: macrophage ? {
+          toPlayer: world.player ? getBestPairGap(macrophage, world.player) : null,
+          toEnemy: enemy ? getBestPairGap(macrophage, enemy) : null,
+          toObstacle: nearestObstacleGap
+        } : null
+      };
+
+      window.__levelRuntimeDebug = snapshot;
+      console.group("[Level Runtime Debug]");
+      console.log(snapshot);
+      console.log("Tip: copy(window.__levelRuntimeDebug)");
+      console.groupEnd();
+    }
+
+    function getLauncherPreviewBounds() {
+      const rect = launcherScopeFrame.getBoundingClientRect();
+      return {
+        width: Math.max(1, Math.round(rect.width)),
+        height: Math.max(1, Math.round(rect.height))
+      };
+    }
+
+    function syncLauncherPreviewCanvasSize() {
+      const { width, height } = getLauncherPreviewBounds();
+      launcherPreviewCanvas.width = width;
+      launcherPreviewCanvas.height = height;
+    }
+
+    async function ensureSpriteAssetsLoaded(loadFn, loadingMessage, readyMessage = null) {
+      const requestId = ++spritePreloadRequestId;
+      spriteAssetsReady = false;
+      setLauncherStatus(loadingMessage, "ready");
+
+      try {
+        await loadFn();
+        if (requestId !== spritePreloadRequestId) return false;
+        spriteAssetsReady = true;
+        if (readyMessage) setLauncherStatus(readyMessage, "ready");
+        return true;
+      } catch (err) {
+        if (requestId === spritePreloadRequestId) {
+          spriteAssetsReady = true;
+        }
+        throw err;
+      }
+    }
+
+    async function restoreLauncherPreview() {
+      if (sessionState === "active") return;
+      if (!introLevel) return;
+      const ready = await ensureSpriteAssetsLoaded(
+        () => preloadAssetsForLevel(introLevel),
+        "Preloading intro sprites..."
+      );
+      if (!ready) return;
+      if (sessionState === "active") return;
+      syncLauncherPreviewCanvasSize();
+      initWorldFromLevel(applyLauncherLevelSettings(introLevel), getLauncherPreviewBounds());
+      introPreviewReady = true;
+    }
+
+    function applySpriteThemeUI(theme = getActiveSpriteTheme()) {
+      if (!theme) return;
+      document.body.dataset.spriteTheme = theme.id;
+      spriteThemeSelect.value = theme.id;
+      spriteThemeChip.textContent = theme.label;
+      spriteThemeDescription.textContent = `${theme.description} Rozmery spritesheetu zustavaji kompatibilni s existujicimi levely a entitami.`;
+    }
+
+    function populateSpriteThemeOptions() {
+      const themes = getSpriteThemes();
+      spriteThemeSelect.innerHTML = "";
+
+      for (const theme of themes) {
+        const option = document.createElement("option");
+        option.value = theme.id;
+        option.textContent = theme.label;
+        spriteThemeSelect.appendChild(option);
+      }
+
+      applySpriteThemeUI();
+    }
+
+    function setLauncherStatus(message, tone = "ready") {
+      launcherStatus.textContent = message;
+      launcherStatus.dataset.tone = tone;
+    }
+
+    function setLauncherBusy(busy) {
+      launcherBusy = busy;
+      launcherButtons.forEach(button => {
+        if (!button.hidden) button.disabled = busy;
+      });
+      playNowButton.disabled = busy;
+    }
+
+    function getLauncherLevelSettings() {
+      return {
+        radius: Number(launcherSettingRadius.value),
+        speed: Number(launcherSettingSpeed.value),
+        fertility: Math.round(Number(launcherSettingFertility.value))
+      };
+    }
+
+    function syncLauncherSettingReadouts() {
+      const settings = getLauncherLevelSettings();
+      launcherRadiusValue.textContent = fmt(settings.radius);
+      launcherSpeedValue.textContent = fmt(settings.speed);
+      launcherFertilityValue.textContent = fmt(settings.fertility);
+    }
+
+    function applyLauncherLevelSettings(json) {
+      const settings = getLauncherLevelSettings();
+      const nextJson = JSON.parse(JSON.stringify(json));
+
+      nextJson.entities = (nextJson.entities ?? []).map(entity => {
+        if (entity?.type !== "Enemy" || entity.instanceIndex !== 1) return entity;
+        return {
+          ...entity,
+          radius: settings.radius,
+          speed: settings.speed,
+          gitMaxParticles: settings.fertility
+        };
+      });
+
+      return nextJson;
+    }
+
+    function setSessionActive(active) {
+      sessionState = active ? "active" : "launcher";
+      document.body.classList.toggle("session-active", active);
+      resumeButton.hidden = !initialized;
+      if (!active) {
+        document.body.classList.remove("menu-open");
+        if (!initialized) restoreLauncherPreview();
+      }
+    }
+
+    async function startRandomSession() {
+      currentLevel = null;
+      levelName = "";
+      setLauncherBusy(true);
+
+      try {
+        const ready = await ensureSpriteAssetsLoaded(
+          () => preloadAssetsForRandomSession(),
+          "Preloading random session sprites..."
+        );
+        if (!ready) return;
+
+        initWorld(getBounds());
+        initialized = true;
+        setSessionActive(true);
+        updateLevelPanel();
+        buildInstanceList();
+        setLauncherStatus("Random field initialized. Session is live.", "ready");
+      } finally {
+        setLauncherBusy(false);
+      }
+    }
+
+    async function startLevelSession(json, name) {
+      currentLevel = json;
+      levelName = name;
+      if (json && typeof json === "object") {
+        json.__debugLevelName = name;
+      }
+      introPreviewReady = false;
+      setSessionActive(true);
+      setLauncherBusy(true);
+
+      try {
+        const ready = await ensureSpriteAssetsLoaded(
+          () => preloadAssetsForLevel(json),
+          `Preloading sprites for ${name}...`
+        );
+        if (!ready) return;
+
+        canvas.width = Math.max(1, window.innerWidth);
+        canvas.height = Math.max(1, window.innerHeight);
+        initWorldFromLevel(json, getLevelWorldBounds(json));
+        levelRuntimeDebugPending = true;
+        initialized = true;
+        updateLevelPanel();
+        buildInstanceList();
+        setLauncherStatus(`Loaded ${name}. Session is live.`, "ready");
+      } finally {
+        setLauncherBusy(false);
+      }
+    }
+
+    async function loadBundledLevel() {
+      const wasActive = sessionState === "active";
+      setLauncherBusy(true);
+      setLauncherStatus("Loading bundled level profile...", "ready");
+
+      try {
+        const response = await fetch("./level.json", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const json = await response.json();
+        await startLevelSession(json, "level.json");
+      } catch (err) {
+        setSessionActive(wasActive && initialized);
+        setLauncherStatus(`Bundled level could not be loaded: ${err.message}`, "error");
+      } finally {
+        setLauncherBusy(false);
+      }
+    }
+
+    async function loadIntroPreview() {
+      if (sessionState === "active") return;
+      syncLauncherPreviewCanvasSize();
+
+      try {
+        const response = await fetch("./introlevel.json", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        introLevel = await response.json();
+        if (sessionState === "active") return;
+        await restoreLauncherPreview();
+      } catch (err) {
+        introPreviewReady = false;
+        setLauncherStatus(`Intro preview could not be loaded: ${err.message}`, "error");
+      }
+    }
+
+    function clampToBounds(obj) {
+      if (!obj) return;
+      const b = getBounds();
+      if (typeof obj.x === "number") obj.x = Math.max(obj.radius, Math.min(b.width  - obj.radius, obj.x));
+      if (typeof obj.y === "number") obj.y = Math.max(obj.radius, Math.min(b.height - obj.radius, obj.y));
+    }
+
+    // ── World-level sliders (affect config + future particles, not live ones) ─
+
+    const worldControlDefs = [
+      {
+        label: "Particle count",
+        key:   "particleCount",
+        min: 10, max: 400, step: 5,
+        note: "Takes effect on next New / Reload."
+      },
+      {
+        label: "Max live particles",
+        key:   "maxParticleCount",
+        min: 50, max: 800, step: 10,
+        note: "Algae stop producing while this is reached."
+      },
+      {
+        label: "Max projectiles",
+        key:   "maxProjectileCount",
+        min: 5, max: 300, step: 5,
+        note: "Farthest shots are removed after this."
+      },
+      {
+        label: "Max particle radius",
+        key:   "maxRadius",
+        min: 10, max: 120, step: 1,
+      },
+      {
+        label: "Min particle speed",
+        key:   "minSpeed",
+        min: 0.01, max: 3, step: 0.01,
+      },
+      {
+        label: "Brownian motion",
+        key:   "brownianStrength",
+        min: 0, max: 0.3, step: 0.002,
+      },
+      {
+        label: "Player friction",
+        key:   "playerFriction",
+        min: 0.80, max: 1.0, step: 0.002,
+      },
+      {
+        label: "Player min friction",
+        key:   "playerMinFriction",
+        min: 0.70, max: 1.0, step: 0.002,
+      },
+      {
+        label: "Player slow start",
+        key:   "playerSlowdownStartRadius",
+        min: 10, max: 80, step: 1,
+      },
+      {
+        label: "Player min radius",
+        key:   "playerMinRadius",
+        min: 1, max: 30, step: 1,
+      },
+      {
+        label: "Particle friction",
+        key:   "particleFriction",
+        min: 0.90, max: 1.0, step: 0.001,
+      },
+      {
+        label: "Division radius",
+        key:   "divisionRadius",
+        min: 10, max: 100, step: 1,
+      },
+      {
+        label: "Player split radius",
+        key:   "playerSplitRadius",
+        min: 20, max: 80, step: 1,
+      },
+      {
+        label: "Player edge inset",
+        key:   "playerEdgeInset",
+        min: 0, max: 120, step: 1,
+      },
+      {
+        label: "Split child radius",
+        key:   "playerSplitChildRadius",
+        min: 6, max: 30, step: 1,
+      },
+    ];
+
+    function buildWorldControls() {
+      const container = document.getElementById("world-controls");
+      container.innerHTML = "";
+
+      for (const def of worldControlDefs) {
+        const group = document.createElement("div");
+        group.className = "control-group";
+
+        const head  = document.createElement("div");
+        head.className = "control-head";
+
+        const name  = document.createElement("div");
+        name.className = "control-name";
+        name.textContent = def.label;
+
+        const val   = document.createElement("div");
+        val.className = "control-value";
+        val.textContent = fmt(config[def.key]);
+
+        head.append(name, val);
+        group.appendChild(head);
+
+        const input = document.createElement("input");
+        input.type  = "range";
+        input.min   = def.min;
+        input.max   = def.max;
+        input.step  = def.step;
+        input.value = config[def.key];
+        input.addEventListener("input", () => {
+          const v = Number(input.value);
+          config[def.key] = v;
+          val.textContent = fmt(v);
+        });
+        group.appendChild(input);
+
+        if (def.note) {
+          const note = document.createElement("div");
+          note.className = "control-note";
+          note.textContent = def.note;
+          group.appendChild(note);
+        }
+
+        container.appendChild(group);
+      }
+    }
+
+    // ── Instance-level sliders (write directly to a live object) ──────────
+
+    /**
+     * Builds a single slider row that reads/writes a prop on `obj`.
+     * @param {object}  obj       live entity instance
+     * @param {string}  label     display label
+     * @param {string}  prop      property path on obj (dot-notation for nested)
+     * @param {number}  min
+     * @param {number}  max
+     * @param {number}  step
+     * @param {Function} [onChange]  optional side-effect after write
+     */
+    function makeSlider(obj, label, prop, min, max, step, onChange) {
+      const group = document.createElement("div");
+      group.className = "control-group";
+
+      const head  = document.createElement("div");
+      head.className = "control-head";
+
+      const name  = document.createElement("div");
+      name.className  = "control-name";
+      name.textContent = label;
+
+      const val   = document.createElement("div");
+      val.className = "control-value";
+
+      const get = () => {
+        const parts = prop.split(".");
+        let v = obj;
+        for (const p of parts) v = v?.[p];
+        return v;
+      };
+      const set = (v) => {
+        const parts = prop.split(".");
+        let target = obj;
+        for (let i = 0; i < parts.length - 1; i++) target = target[parts[i]];
+        target[parts[parts.length - 1]] = v;
+      };
+
+      val.textContent = fmt(get());
+
+      head.append(name, val);
+      group.appendChild(head);
+
+      const input = document.createElement("input");
+      input.type  = "range";
+      input.min   = min;
+      input.max   = max;
+      input.step  = step;
+      input.value = get() ?? min;
+      input.addEventListener("input", () => {
+        const v = Number(input.value);
+        set(v);
+        val.textContent = fmt(v);
+        if (onChange) onChange(v, obj);
+        clampToBounds(obj);
+      });
+      group.appendChild(input);
+
+      return group;
+    }
+
+    function makeToggle(obj, label, prop, onChange) {
+      const group = document.createElement("div");
+      group.className = "control-group";
+
+      const head  = document.createElement("div");
+      head.className = "control-head";
+
+      const name  = document.createElement("div");
+      name.className  = "control-name";
+      name.textContent = label;
+
+      const val   = document.createElement("div");
+      val.className = "control-value";
+
+      const get = () => !!obj?.[prop];
+      const set = (v) => { obj[prop] = !!v; };
+
+      val.textContent = get() ? "ON" : "OFF";
+
+      head.append(name, val);
+      group.appendChild(head);
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "launcher-btn";
+      button.textContent = get() ? "Disable" : "Enable";
+      button.addEventListener("click", () => {
+        const next = !get();
+        set(next);
+        val.textContent = next ? "ON" : "OFF";
+        button.textContent = next ? "Disable" : "Enable";
+        if (onChange) onChange(next, obj);
+      });
+      group.appendChild(button);
+
+      return group;
+    }
+
+    /**
+     * Builds all controls for one entity card and appends them to `container`.
+     */
+    function buildInstanceCard(type, obj, index, listEl) {
+      const card = document.createElement("div");
+      card.className = "instance-card";
+
+      // header
+      const hdr = document.createElement("div");
+      hdr.className = "instance-card-header";
+
+      const lbl = document.createElement("div");
+      lbl.className = "instance-label";
+      lbl.textContent = type;
+
+      const idx = document.createElement("div");
+      idx.className = "instance-index";
+      idx.textContent = `#${index}`;
+
+      hdr.append(lbl, idx);
+      card.appendChild(hdr);
+
+      const controls = document.createElement("div");
+      controls.className = "instance-controls";
+
+      switch (type) {
+        case "Player":
+          controls.appendChild(makeSlider(obj, "Radius",      "radius",     2, 120, 1,
+            (v) => { obj.prevRadius = v; }));
+          controls.appendChild(makeSlider(obj, "Click force", "clickForce", 0.1, 4, 0.05));
+          break;
+
+        case "Enemy":
+          controls.appendChild(makeSlider(obj, "Radius", "radius", 4, 120, 1));
+          controls.appendChild(makeSlider(obj, "Speed",  "speed",  0.01, 4, 0.01));
+          controls.appendChild(makeSlider(obj, "Bounce force", "bounceForce", 0, 8, 0.1));
+          break;
+
+        case "Macrophage":
+          controls.appendChild(makeSlider(obj, "Radius",    "radius",     4, 140, 1));
+          controls.appendChild(makeSlider(obj, "Turn rate", "mouth.turnRate",  0.001, 0.3, 0.001,
+            // mouth object may be null — write to obj.mouth, lazily create
+            (v, o) => {
+              if (!o.mouth) o.mouth = {};
+              o.mouth.turnRate = v;
+            }
+          ));
+          controls.appendChild(makeSlider(obj, "Idle spin", "mouth.idleSpin", 0, 0.2, 0.001,
+            (v, o) => { if (!o.mouth) o.mouth = {}; o.mouth.idleSpin = v; }
+          ));
+          controls.appendChild(makeSlider(obj, "Bounce force", "bounceForce", 0, 4, 0.05));
+          break;
+
+        case "ComposedStone":
+        case "Algae":
+          controls.appendChild(makeSlider(obj, "Sprite scale", "spriteScale", 0.05, 10, 0.01));
+          controls.appendChild(makeToggle(obj, "Sprite debug", "spriteDebug"));
+          break;
+
+        case "Stentor":
+          controls.appendChild(makeSlider(obj, "Mouth turn rate",    "mouth.turnRate",          0.001, 0.3, 0.001,
+            (v, o) => { if (!o.mouth) o.mouth = {}; o.mouth.turnRate = v; }
+          ));
+          controls.appendChild(makeSlider(obj, "Mouth idle spin",    "mouth.idleSpin",          0, 0.2, 0.001,
+            (v, o) => { if (!o.mouth) o.mouth = {}; o.mouth.idleSpin = v; }
+          ));
+          controls.appendChild(makeSlider(obj, "Body idle spin",     "bodyRotation.idleSpin",   0, 0.02, 0.0002,
+            (v, o) => { if (!o.bodyRotation) o.bodyRotation = {}; o.bodyRotation.idleSpin = v; }
+          ));
+          break;
+
+        case "Obstacle":
+          controls.appendChild(makeSlider(obj, "Radius",       "radius",      4, 140, 1));
+          controls.appendChild(makeSlider(obj, "Bounce force", "bounceForce", 0, 5,   0.1));
+          break;
+
+        case "Stone":
+        case "Oldbody":
+          controls.appendChild(makeSlider(obj, "Radius",    "radius",   4, 140, 1));
+          controls.appendChild(makeSlider(obj, "Max speed", "maxSpeed", 0.05, 8, 0.05));
+          controls.appendChild(makeSlider(obj, "Friction",  "friction", 0.80, 1, 0.005));
+          break;
+      }
+
+      card.appendChild(controls);
+      listEl.appendChild(card);
+    }
+
+    /**
+     * Rebuilds the entire Instances section from current world state.
+     * Called after each level load/init, and whenever the menu is opened.
+     */
+    function buildInstanceList() {
+      const list = document.getElementById("instance-list");
+      list.innerHTML = "";
+
+      if (!initialized) {
+        list.innerHTML = '<div class="empty-note">Start a game to see live instances.</div>';
+        return;
+      }
+
+      let count = 0;
+
+      // Player
+      if (world.player && !world.player.absorbed) {
+        buildInstanceCard("Player", world.player, 1, list);
+        count++;
+      }
+
+      // Enemies
+      (world.enemies ?? []).forEach((e, i) => {
+        buildInstanceCard("Enemy", e, i + 1, list);
+        count++;
+      });
+
+      // Macrophages
+      (world.macrophages ?? []).forEach((m, i) => {
+        buildInstanceCard("Macrophage", m, i + 1, list);
+        count++;
+      });
+
+      // Stentors
+      (world.stentors ?? []).forEach((s, i) => {
+        buildInstanceCard("Stentor", s, i + 1, list);
+        count++;
+      });
+
+      // Obstacles
+      (world.obstacles ?? []).forEach((o, i) => {
+        buildInstanceCard("Obstacle", o, i + 1, list);
+        count++;
+      });
+
+      // Stones
+      (world.stones ?? []).forEach((s, i) => {
+        buildInstanceCard("Stone", s, i + 1, list);
+        count++;
+      });
+
+      // Composed stones
+      (world.composedStones ?? []).forEach((s, i) => {
+        buildInstanceCard("ComposedStone", s, i + 1, list);
+        count++;
+      });
+
+      // Algae
+      (world.algae ?? []).forEach((a, i) => {
+        buildInstanceCard("Algae", a, i + 1, list);
+        count++;
+      });
+
+      // Old bodies
+      (world.oldbodies ?? []).forEach((o, i) => {
+        buildInstanceCard("Oldbody", o, i + 1, list);
+        count++;
+      });
+
+      if (count === 0) {
+        list.innerHTML = '<div class="empty-note">No live instances found.</div>';
+      }
+    }
+
+    // ── Level management ───────────────────────────────────────────────────
+
+    function updateLevelPanel() {
+      const hasLevel = !!currentLevel;
+      document.getElementById("btn-reload").style.display = hasLevel ? "" : "none";
+      document.getElementById("btn-unload").style.display = hasLevel ? "" : "none";
+      document.getElementById("level-name").textContent   = hasLevel
+        ? `Loaded: ${levelName}`
+        : initialized
+          ? "Random field active"
+          : "no level loaded";
+    }
+
+    function loadLevelJSON(json, name) {
+      return startLevelSession(json, name);
+    }
+
+    window.loadRandom = function () {
+      startRandomSession();
+    };
+
+    window.reloadLevel = function () {
+      if (!currentLevel) { loadRandom(); return; }
+      if (levelName === "level.json") {
+        loadBundledLevel();
+        return;
+      }
+      startLevelSession(currentLevel, levelName);
+    };
+
+    window.unloadLevel = function () {
+      if (!initialized) return;
+      setSessionActive(false);
+      setLauncherStatus("Session unloaded. Choose how you want to start the next observation.", "ready");
+    };
+
+    // ── File input / drag-drop ─────────────────────────────────────────────
+
+    document.getElementById("file-input").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const wasActive = sessionState === "active";
+      setLauncherBusy(true);
+      setLauncherStatus(`Importing ${file.name}...`, "ready");
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        try {
+          await loadLevelJSON(JSON.parse(ev.target.result), file.name);
+        } catch (err) {
+          setSessionActive(wasActive && initialized);
+          setLauncherStatus(`Invalid JSON: ${err.message}`, "error");
+        }
+        setLauncherBusy(false);
+      };
+      reader.onerror = () => {
+        setLauncherBusy(false);
+        setLauncherStatus(`Could not read ${file.name}.`, "error");
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    document.addEventListener("dragover",  e => { e.preventDefault(); document.body.classList.add("drag-over"); });
+    document.addEventListener("dragleave", e => { if (e.relatedTarget === null) document.body.classList.remove("drag-over"); });
+    document.addEventListener("drop", e => {
+      e.preventDefault();
+      document.body.classList.remove("drag-over");
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const wasActive = sessionState === "active";
+      setLauncherBusy(true);
+      setLauncherStatus(`Importing ${file.name}...`, "ready");
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        try { await loadLevelJSON(JSON.parse(ev.target.result), file.name); }
+        catch (err) {
+          setSessionActive(wasActive && initialized);
+          setLauncherStatus(`Invalid JSON: ${err.message}`, "error");
+        }
+        setLauncherBusy(false);
+      };
+      reader.onerror = () => {
+        setLauncherBusy(false);
+        setLauncherStatus(`Could not read ${file.name}.`, "error");
+      };
+      reader.readAsText(file);
+    });
+
+    // ── Input ──────────────────────────────────────────────────────────────
+
+    function handleCanvasActivation(clientX, clientY) {
+      if (!initialized || sessionState !== "active" || document.body.classList.contains("menu-open")) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = clientX - rect.left;
+      const my = clientY - rect.top;
+      const playfield = getActiveSessionBounds();
+      if (currentLevel && (mx < playfield.x || my < playfield.y || mx > playfield.x + playfield.width || my > playfield.y + playfield.height)) return;
+      const worldBounds = currentLevel ? getLevelWorldBounds(currentLevel) : playfield;
+      const sourceRect = currentLevel ? getLevelCameraRect(currentLevel) : { x: 0, y: 0, ...worldBounds };
+      const scaleX = playfield.width / Math.max(1, sourceRect.width);
+      const scaleY = playfield.height / Math.max(1, sourceRect.height);
+      shootFromPlayer(
+        sourceRect.x + (mx - (playfield.x ?? 0)) / scaleX,
+        sourceRect.y + (my - (playfield.y ?? 0)) / scaleY
+      );
+    }
+
+    canvas.addEventListener("click", e => {
+      handleCanvasActivation(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener("touchstart", e => {
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      handleCanvasActivation(touch.clientX, touch.clientY);
+    }, { passive: false });
+
+    // ── Menu open/close ────────────────────────────────────────────────────
+
+    const toggleButton = document.getElementById("menu-toggle");
+    const backdrop     = document.getElementById("menu-backdrop");
+
+    spriteThemeSelect.addEventListener("change", async () => {
+      const theme = setActiveSpriteTheme(spriteThemeSelect.value);
+      applySpriteThemeUI(theme);
+
+      try {
+        const preloadForActiveScene = () => {
+          if (currentLevel) return preloadAssetsForLevel(currentLevel, theme.id);
+          if (initialized) return preloadAssetsForRandomSession(theme.id);
+          if (introLevel) return preloadAssetsForLevel(introLevel, theme.id);
+          return preloadCoreSpriteAssets(theme.id);
+        };
+
+        const ready = await ensureSpriteAssetsLoaded(
+          preloadForActiveScene,
+          `Preloading ${theme.label} sprite theme...`,
+          `Sprite theme switched to ${theme.label}.`
+        );
+        if (ready && sessionState !== "active") {
+          await restoreLauncherPreview();
+        }
+      } catch (err) {
+        setLauncherStatus(`Sprite theme preload failed: ${err.message}`, "error");
+      }
+    });
+
+    subscribeSpriteThemeChange(theme => {
+      applySpriteThemeUI(theme);
+    });
+
+    function setMenuOpen(open) {
+      document.body.classList.toggle("menu-open", open);
+      // Rebuild instance list every time menu opens so sliders reflect live state
+      if (open) {
+        buildInstanceList();
+        applySpriteThemeUI();
+      }
+    }
+
+    toggleButton.addEventListener("click", () => {
+      setMenuOpen(!document.body.classList.contains("menu-open"));
+    });
+    backdrop.addEventListener("click", () => setMenuOpen(false));
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape") setMenuOpen(false);
+      if (e.repeat) return;
+      if (e.key === "d" || e.key === "D" || e.key === "F6") {
+        e.preventDefault();
+        const enabled = e.key === "F6"
+          ? toggleLevelDebugOverlay()
+          : toggleDebugMode();
+        setLauncherStatus(
+          enabled
+            ? "Debug mode enabled. Background bounds, anchor markers, and CO2 field vectors are visible."
+            : "Debug mode disabled.",
+          "ready"
+        );
+      }
+    });
+
+    // ── Resize / animate ───────────────────────────────────────────────────
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      syncLauncherPreviewCanvasSize();
+
+      if (sessionState !== "active" && !initialized) {
+        restoreLauncherPreview();
+      }
+
+      if (!initialized) return;
+
+      if (currentLevel) {
+        if (levelResizeReflowHandle) clearTimeout(levelResizeReflowHandle);
+        levelResizeReflowHandle = setTimeout(() => {
+          initWorldFromLevel(currentLevel, getLevelWorldBounds(currentLevel));
+          levelRuntimeDebugPending = true;
+          buildInstanceList();
+          levelResizeReflowHandle = null;
+        }, 120);
+        return;
+      }
+
+      resizeWorld(getBounds(), { rebuildField: true });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      launcherPreviewCtx.clearRect(0, 0, launcherPreviewCanvas.width, launcherPreviewCanvas.height);
+
+      if (!spriteAssetsReady) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      if (sessionState === "active" && initialized) {
+        const playfield = getActiveSessionBounds();
+        const worldBounds = currentLevel ? getLevelWorldBounds(currentLevel) : playfield;
+        if (currentLevel) {
+          ctx.save();
+          ctx.fillStyle = "rgba(8, 12, 14, 0.92)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.restore();
+        }
+        updateWorld(worldBounds);
+        const sourceRect = currentLevel ? getLevelCameraRect(currentLevel) : null;
+        if (currentLevel && levelRuntimeDebugPending) {
+          captureLevelRuntimeDebug(worldBounds, playfield);
+          levelRuntimeDebugPending = false;
+        }
+        drawWorld(ctx, currentLevel ? { viewRect: playfield, worldBounds, sourceRect } : null);
+      } else if (introPreviewReady) {
+        updateWorld(getLauncherPreviewBounds());
+        drawWorld(launcherPreviewCtx);
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // ── Boot ───────────────────────────────────────────────────────────────
+
+    window.addEventListener("resize", resize);
+    resize();
+    populateSpriteThemeOptions();
+    syncLauncherSettingReadouts();
+    buildWorldControls();
+    updateLevelPanel();
+    buildInstanceList();
+    animate();
+    loadIntroPreview();
+
+    document.getElementById("launcher-new-game").addEventListener("click", () => {
+      if (!launcherBusy) startRandomSession();
+    });
+
+    playNowButton.addEventListener("click", () => {
+      if (!launcherBusy) loadBundledLevel();
+    });
+
+    document.getElementById("launcher-load-default").addEventListener("click", () => {
+      if (!launcherBusy) loadBundledLevel();
+    });
+
+    document.getElementById("launcher-import-json").addEventListener("click", () => {
+      if (launcherBusy) return;
+      setLauncherStatus("Select a JSON level file to import.", "ready");
+      document.getElementById("file-input").click();
+    });
+
+    document.getElementById("launcher-level-design").addEventListener("click", () => {
+      if (launcherBusy) return;
+      const editorUrl = "./LEVEL_DESIGN/final_editor/index.html?v=player-collisions-20260525";
+      const editorWindow = window.open(editorUrl, "_blank", "noopener");
+      if (editorWindow) {
+        setLauncherStatus("Level editor opened in a new window.", "ready");
+      } else {
+        setLauncherStatus("Opening level editor in this tab...", "ready");
+        window.location.href = editorUrl;
+      }
+    });
+
+    resumeButton.addEventListener("click", () => {
+      if (!initialized || launcherBusy) return;
+      setSessionActive(true);
+      setLauncherStatus("Returning to active session.", "ready");
+    });
+
+    launcherSettingRadius.addEventListener("input", () => {
+      syncLauncherSettingReadouts();
+      if (sessionState !== "active") restoreLauncherPreview();
+    });
+    launcherSettingSpeed.addEventListener("input", () => {
+      syncLauncherSettingReadouts();
+      if (sessionState !== "active") restoreLauncherPreview();
+    });
+    launcherSettingFertility.addEventListener("input", () => {
+      syncLauncherSettingReadouts();
+      if (sessionState !== "active") restoreLauncherPreview();
+    });
+
+    setSessionActive(false);
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "spawnFallbackPlayer": false,
+  "canvasRef": {
+    "width": 720,
+    "height": 720
+  },
+  "background": null,
+  "entities": [
+    {
+      "type": "Enemy",
+      "xNorm": 0.5,
+      "yNorm": 0.5,
+      "radius": 128,
+      "instanceIndex": 1,
+      "spriteIndex": 1,
+      "speed": 0,
+      "velocityDamping": 1,
+      "maxGlideSpeed": 0,
+      "kickImpulse": 0,
+      "kickCooldownMs": 999999,
+      "searchKickImpulse": 0,
+      "searchKickCooldownMs": 999999,
+      "wanderJitter": 0,
+      "bounceForce": 0,
+      "chaseRadius": 0,
+      "mouthTurnRate": 0.012,
+      "mouthIdleSpin": 0,
+      "mouthRestAngle": 0,
+      "scanTurnRate": 0.006,
+      "scanRetargetMs": 2200,
+      "scanSweepAngleDeg": 20,
+      "spriteScale": 1.52,
+      "spriteRotationOffset": 0.25,
+      "spriteBodyU": 0.41,
+      "spriteBodyV": 0.423,
+      "spriteMouthU": 0.751,
+      "spriteMouthV": 0.327,
+      "spriteAnimationEnabled": true,
+      "spriteAnimationFrames": 5,
+      "spriteAnimationStart": 1,
+      "spriteAnimationFps": 12,
+      "spriteAnimationPadding": 5,
+      "spriteDebug": false,
+      "bodyCircles": [
+        {
+          "dxR": 0,
+          "dyR": 0,
+          "rR": 1
+        }
+      ],
+      "innerArtifacts": []
+    },
+    {
+      "type": "Egg",
+      "xNorm": 0.33,
+      "yNorm": 0.37,
+      "radius": 26,
+      "angle": 0.2,
+      "dx": 0.08,
+      "dy": -0.03,
+      "spriteIndex": 1,
+      "detached": true
+    },
+    {
+      "type": "Egg",
+      "xNorm": 0.68,
+      "yNorm": 0.34,
+      "radius": 24,
+      "angle": -0.35,
+      "dx": -0.06,
+      "dy": 0.04,
+      "spriteIndex": 1,
+      "detached": true
+    },
+    {
+      "type": "Egg",
+      "xNorm": 0.74,
+      "yNorm": 0.56,
+      "radius": 22,
+      "angle": 0.5,
+      "dx": -0.05,
+      "dy": -0.02,
+      "spriteIndex": 1,
+      "detached": true
+    },
+    {
+      "type": "Egg",
+      "xNorm": 0.5,
+      "yNorm": 0.72,
+      "radius": 25,
+      "angle": 0,
+      "dx": 0.03,
+      "dy": -0.07,
+      "spriteIndex": 1,
+      "detached": true
+    },
+    {
+      "type": "Egg",
+      "xNorm": 0.27,
+      "yNorm": 0.58,
+      "radius": 23,
+      "angle": -0.15,
+      "dx": 0.05,
+      "dy": 0.03,
+      "spriteIndex": 1,
+      "detached": true
+    }
+  ]
+}

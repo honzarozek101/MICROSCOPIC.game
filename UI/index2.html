@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>microscopic.game — Bio-Lab UI Menu</title>
+  <style>
+    :root {
+      --bg-0: #050809;
+      --bg-1: #0a1113;
+      --bg-2: #0d1719;
+      --panel: rgba(7, 13, 15, 0.74);
+      --panel-border: rgba(130, 255, 243, 0.16);
+      --text-main: #edf6f5;
+      --text-soft: #90a5a2;
+      --text-dim: #647270;
+      --accent: #82fff3;
+      --accent-soft: rgba(130, 255, 243, 0.16);
+      --accent-strong: rgba(130, 255, 243, 0.5);
+      --danger: #c9ff73;
+      --shadow: 0 0 0 1px rgba(255,255,255,0.015), 0 22px 80px rgba(0,0,0,0.48);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(124, 255, 220, 0.06), transparent 28%),
+        radial-gradient(circle at 80% 30%, rgba(103, 160, 255, 0.05), transparent 32%),
+        radial-gradient(circle at 50% 80%, rgba(110, 255, 211, 0.04), transparent 38%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 34%, var(--bg-0) 100%);
+      color: var(--text-main);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* glass / microscope slide texture */
+    body::before {
+      background:
+        linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.02) 24%, transparent 28%),
+        linear-gradient(90deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 100%),
+        linear-gradient(0deg, rgba(255,255,255,0.01) 0 1px, transparent 1px 100%);
+      background-size: auto, 120px 120px, 120px 120px;
+      opacity: 0.4;
+      mix-blend-mode: screen;
+    }
+
+    /* subtle noise */
+    body::after {
+      background-image:
+        radial-gradient(rgba(255,255,255,0.045) 0.7px, transparent 0.8px),
+        radial-gradient(rgba(130,255,243,0.03) 0.7px, transparent 0.9px);
+      background-size: 7px 7px, 11px 11px;
+      background-position: 0 0, 3px 2px;
+      opacity: 0.12;
+      animation: driftNoise 18s linear infinite;
+    }
+
+    @keyframes driftNoise {
+      from { transform: translate3d(0,0,0); }
+      to { transform: translate3d(-14px, 10px, 0); }
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .organisms,
+    .particles,
+    .vignette,
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .vignette {
+      z-index: 1;
+      background:
+        radial-gradient(circle at center, transparent 32%, rgba(0,0,0,0.14) 64%, rgba(0,0,0,0.46) 100%);
+    }
+
+    .scanlines {
+      z-index: 2;
+      opacity: 0.08;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.03) 0px,
+        rgba(255,255,255,0.03) 1px,
+        transparent 2px,
+        transparent 6px
+      );
+      mask-image: radial-gradient(circle at center, black 35%, transparent 80%);
+    }
+
+    .organism {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.2;
+      mix-blend-mode: screen;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      box-shadow: 0 0 24px rgba(130,255,243,0.08);
+    }
+
+    .organism::before,
+    .organism::after {
+      content: "";
+      position: absolute;
+      border-radius: inherit;
+      inset: 14% 20%;
+      border: 1px solid rgba(255,255,255,0.08);
+      opacity: 0.28;
+    }
+
+    .organism::after {
+      inset: 32% 34%;
+      background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 60%, transparent 70%);
+      border: 0;
+    }
+
+    .o1 {
+      width: 240px; height: 150px;
+      left: 10%; top: 16%;
+      background: radial-gradient(circle at 30% 35%, rgba(130,255,243,0.22), rgba(130,255,243,0.08) 45%, rgba(130,255,243,0.02) 72%, transparent 100%);
+      animation: float1 23s infinite;
+    }
+
+    .o2 {
+      width: 180px; height: 180px;
+      right: 16%; top: 18%;
+      background: radial-gradient(circle at 42% 44%, rgba(175,255,130,0.18), rgba(130,255,243,0.07) 52%, transparent 100%);
+      animation: float2 28s infinite;
+    }
+
+    .o3 {
+      width: 260px; height: 120px;
+      right: 10%; bottom: 14%;
+      background: radial-gradient(circle at 55% 50%, rgba(255,210,120,0.16), rgba(130,255,243,0.05) 48%, transparent 100%);
+      animation: float3 31s infinite;
+    }
+
+    .o4 {
+      width: 120px; height: 120px;
+      left: 18%; bottom: 18%;
+      background: radial-gradient(circle at 45% 45%, rgba(130,255,243,0.16), rgba(130,255,243,0.05) 54%, transparent 100%);
+      animation: float4 19s infinite;
+    }
+
+    @keyframes float1 {
+      0%,100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+      50% { transform: translate3d(38px, 26px, 0) rotate(8deg) scale(1.06); }
+    }
+    @keyframes float2 {
+      0%,100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(-40px, 32px, 0) scale(0.94); }
+    }
+    @keyframes float3 {
+      0%,100% { transform: translate3d(0,0,0) rotate(0deg); }
+      50% { transform: translate3d(-36px, -20px, 0) rotate(-7deg); }
+    }
+    @keyframes float4 {
+      0%,100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(22px, -30px, 0) scale(1.08); }
+    }
+
+    .particle {
+      position: absolute;
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      left: var(--x);
+      top: var(--y);
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.65), rgba(130,255,243,0.22) 35%, rgba(130,255,243,0.05) 65%, transparent 100%);
+      opacity: 0.18;
+      filter: blur(1px);
+      animation: drift var(--dur) linear infinite;
+      animation-delay: var(--delay);
+      box-shadow: 0 0 14px rgba(130,255,243,0.08);
+    }
+
+    @keyframes drift {
+      from { transform: translate3d(0,0,0); }
+      to { transform: translate3d(var(--dx), var(--dy), 0); }
+    }
+
+    .shell {
+      position: relative;
+      z-index: 3;
+      width: min(92vw, 980px);
+      min-height: min(84vh, 720px);
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      padding: 26px;
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: linear-gradient(180deg, rgba(8,15,17,0.76), rgba(5,9,10,0.84));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(130,255,243,0.18), rgba(255,255,255,0.02), rgba(130,255,243,0.08));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .left, .right {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      min-height: 560px;
+    }
+
+    .left {
+      padding: 30px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        radial-gradient(circle at 24% 24%, rgba(130,255,243,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.005));
+      border: 1px solid rgba(255,255,255,0.045);
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 62px);
+      line-height: 0.95;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      color: var(--text-main);
+      text-transform: uppercase;
+      text-shadow: 0 0 24px rgba(130,255,243,0.05);
+    }
+
+    .brand .dot {
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(130,255,243,0.28);
+    }
+
+    .subtitle {
+      max-width: 34rem;
+      margin-top: 18px;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.75;
+      letter-spacing: 0.03em;
+    }
+
+    .statusline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 999px;
+      color: var(--text-soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      background: rgba(255,255,255,0.025);
+    }
+
+    .chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(130,255,243,0.4);
+      opacity: 0.9;
+    }
+
+    .scope {
+      position: relative;
+      margin-top: 24px;
+      width: min(100%, 480px);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      border: 1px solid rgba(130,255,243,0.18);
+      align-self: flex-start;
+      background:
+        radial-gradient(circle at center, rgba(130,255,243,0.06), transparent 44%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent 63%),
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0.14), rgba(0,0,0,0.36));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.02),
+        inset 0 0 60px rgba(130,255,243,0.03),
+        0 0 34px rgba(130,255,243,0.04);
+      overflow: hidden;
+    }
+
+    .scope::before,
+    .scope::after {
+      content: "";
+      position: absolute;
+      inset: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .scope::before {
+      width: 78%;
+      height: 78%;
+      border: 1px solid rgba(130,255,243,0.1);
+    }
+
+    .scope::after {
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      opacity: 0.6;
+      box-shadow: 0 0 18px rgba(130,255,243,0.35);
+    }
+
+    .crosshair-x,
+    .crosshair-y {
+      position: absolute;
+      background: linear-gradient(90deg, transparent, rgba(130,255,243,0.14), transparent);
+      pointer-events: none;
+    }
+
+    .crosshair-x {
+      left: 12%; right: 12%; top: 50%; height: 1px;
+      transform: translateY(-50%);
+    }
+
+    .crosshair-y {
+      top: 12%; bottom: 12%; left: 50%; width: 1px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, transparent, rgba(130,255,243,0.14), transparent);
+    }
+
+    .scope-organism {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(0.2px);
+      opacity: 0.88;
+      background: radial-gradient(circle at 35% 35%, rgba(225,255,249,0.25), rgba(130,255,243,0.15) 34%, rgba(130,255,243,0.06) 60%, rgba(130,255,243,0.02) 72%, transparent 100%);
+      border: 1px solid rgba(130,255,243,0.12);
+      box-shadow: inset 0 0 24px rgba(255,255,255,0.03), 0 0 22px rgba(130,255,243,0.06);
+      animation: microFloat 16s ease-in-out infinite;
+    }
+
+    .scope-organism::before,
+    .scope-organism::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .scope-organism::before {
+      inset: 18% 20%;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .scope-organism::after {
+      width: 18%;
+      aspect-ratio: 1;
+      left: 34%;
+      top: 30%;
+      background: radial-gradient(circle, rgba(255,255,255,0.26), rgba(130,255,243,0.08) 65%, transparent 72%);
+    }
+
+    .scope-organism.s1 { width: 108px; height: 72px; left: 21%; top: 25%; animation-delay: -2s; }
+    .scope-organism.s2 { width: 82px; height: 82px; left: 58%; top: 53%; animation-delay: -6s; }
+    .scope-organism.s3 { width: 136px; height: 60px; left: 42%; top: 18%; animation-delay: -10s; }
+
+    @keyframes microFloat {
+      0%,100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+      50% { transform: translate3d(10px,-8px,0) rotate(5deg) scale(1.03); }
+    }
+
+    .scope-labels {
+      position: absolute;
+      inset: 0;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(237,246,245,0.38);
+      pointer-events: none;
+    }
+
+    .scope-labels span {
+      position: absolute;
+    }
+
+    .scope-labels .l1 { top: 11%; left: 10%; }
+    .scope-labels .l2 { top: 22%; right: 12%; }
+    .scope-labels .l3 { bottom: 18%; left: 12%; }
+    .scope-labels .l4 { bottom: 12%; right: 16%; color: rgba(130,255,243,0.52); }
+
+    .footer-note {
+      margin-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .footer-note .pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-note .pulse::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 12px rgba(201,255,115,0.35);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.35); }
+    }
+
+    .right {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.01)),
+        rgba(6, 12, 14, 0.74);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      font-weight: 500;
+    }
+
+    .version {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .menu {
+      display: grid;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .menu-btn {
+      position: relative;
+      width: 100%;
+      padding: 18px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012));
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.015);
+    }
+
+    .menu-btn:hover,
+    .menu-btn:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(130,255,243,0.25);
+      background: linear-gradient(180deg, rgba(130,255,243,0.08), rgba(255,255,255,0.025));
+      box-shadow: 0 0 0 1px rgba(130,255,243,0.08), 0 8px 30px rgba(0,0,0,0.24);
+      outline: none;
+    }
+
+    .menu-btn::before {
+      content: "";
+      position: absolute;
+      left: -110%;
+      top: 0;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(130,255,243,0.16), transparent);
+      transition: left 420ms ease;
+      pointer-events: none;
+    }
+
+    .menu-btn:hover::before,
+    .menu-btn:focus-visible::before {
+      left: 120%;
+    }
+
+    .btn-label {
+      display: block;
+      font-size: 17px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 400;
+    }
+
+    .btn-meta {
+      display: block;
+      margin-top: 6px;
+      color: var(--text-soft);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .subpanels {
+      display: grid;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .subpanel {
+      padding: 16px 16px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.018);
+    }
+
+    .subpanel h3 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+
+    .subpanel p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+
+    .theme-switch {
+      display: inline-flex;
+      margin-top: 12px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      gap: 4px;
+    }
+
+    .theme-switch button {
+      border: 0;
+      background: transparent;
+      color: var(--text-soft);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      transition: background 180ms ease, color 180ms ease;
+    }
+
+    .theme-switch button.active {
+      background: rgba(130,255,243,0.12);
+      color: var(--text-main);
+      box-shadow: inset 0 0 0 1px rgba(130,255,243,0.14);
+    }
+
+    .microcopy {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 14px;
+      margin-top: 18px;
+      color: var(--text-dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .microcopy strong {
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+
+    @media (max-width: 920px) {
+      .shell {
+        width: min(94vw, 760px);
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .left, .right {
+        min-height: auto;
+      }
+
+      .scope {
+        width: min(100%, 360px);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        padding: 14px;
+        gap: 14px;
+        border-radius: 18px;
+      }
+
+      .left, .right {
+        padding: 18px;
+        border-radius: 16px;
+      }
+
+      .brand {
+        font-size: clamp(24px, 10vw, 40px);
+        letter-spacing: 0.16em;
+      }
+
+      .btn-label {
+        font-size: 15px;
+      }
+
+      .footer-note,
+      .microcopy {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="organisms" aria-hidden="true">
+      <div class="organism o1"></div>
+      <div class="organism o2"></div>
+      <div class="organism o3"></div>
+      <div class="organism o4"></div>
+    </div>
+
+    <div class="particles" aria-hidden="true">
+      <div class="particle" style="--size: 5px; --x: 14%; --y: 72%; --dx: 40px; --dy: -180px; --dur: 32s; --delay: -3s;"></div>
+      <div class="particle" style="--size: 3px; --x: 28%; --y: 84%; --dx: -20px; --dy: -220px; --dur: 25s; --delay: -9s;"></div>
+      <div class="particle" style="--size: 7px; --x: 70%; --y: 76%; --dx: 26px; --dy: -210px; --dur: 30s; --delay: -14s;"></div>
+      <div class="particle" style="--size: 4px; --x: 82%; --y: 88%; --dx: -48px; --dy: -240px; --dur: 36s; --delay: -7s;"></div>
+      <div class="particle" style="--size: 4px; --x: 8%; --y: 26%; --dx: 60px; --dy: 90px; --dur: 38s; --delay: -18s;"></div>
+      <div class="particle" style="--size: 6px; --x: 88%; --y: 18%; --dx: -70px; --dy: 120px; --dur: 41s; --delay: -12s;"></div>
+      <div class="particle" style="--size: 3px; --x: 56%; --y: 14%; --dx: 20px; --dy: 170px; --dur: 28s; --delay: -5s;"></div>
+      <div class="particle" style="--size: 5px; --x: 42%; --y: 90%; --dx: 10px; --dy: -160px; --dur: 34s; --delay: -11s;"></div>
+    </div>
+
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <main class="shell">
+      <section class="left">
+        <div>
+          <div class="eyebrow">Live Field Interface / Bio-Lab Build</div>
+          <h1 class="brand">Microscopic<span class="dot">.</span>Game</h1>
+          <p class="subtitle">
+            Enter a living micro-world beneath the lens. Observe motion, predation, drift, collision,
+            and emergence through a clean laboratory interface designed for a playable biological system.
+          </p>
+
+          <div class="statusline">
+            <span class="chip">Field Online</span>
+            <span class="chip">Dark Mode Default</span>
+            <span class="chip">Organic Systems Active</span>
+          </div>
+
+          <div class="scope" aria-hidden="true">
+            <div class="crosshair-x"></div>
+            <div class="crosshair-y"></div>
+            <div class="scope-organism s1"></div>
+            <div class="scope-organism s2"></div>
+            <div class="scope-organism s3"></div>
+            <div class="scope-labels">
+              <span class="l1">density scan</span>
+              <span class="l2">cell cluster</span>
+              <span class="l3">motion trace</span>
+              <span class="l4">live sample</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          <span class="pulse">sample suspended / observation stable</span>
+          <span>microscopic.game</span>
+        </div>
+      </section>
+
+      <aside class="right">
+        <div>
+          <div class="panel-head">
+            <h2 class="panel-title">Primary Navigation</h2>
+            <span class="version">Prototype UI v0.1</span>
+          </div>
+
+          <nav class="menu">
+            <button class="menu-btn" type="button">
+              <span class="btn-label">New Game</span>
+              <span class="btn-meta">Initialize a new organism field and start observation.</span>
+            </button>
+
+            <button class="menu-btn" type="button">
+              <span class="btn-label">Load Game</span>
+              <span class="btn-meta">Open a saved level profile or import a structured JSON world.</span>
+            </button>
+
+            <button class="menu-btn" type="button">
+              <span class="btn-label">About</span>
+              <span class="btn-meta">Read project notes, simulation direction, and interface details.</span>
+            </button>
+          </nav>
+
+          <div class="subpanels">
+            <section class="subpanel">
+              <h3>Display</h3>
+              <p>Lean Bio-Lab UI with restrained glow, technical typography, and subtle background activity.</p>
+              <div class="theme-switch" aria-label="Theme selector">
+                <button class="active" type="button">Dark</button>
+                <button type="button">Light</button>
+              </div>
+            </section>
+
+            <section class="subpanel">
+              <h3>Interface Notes</h3>
+              <p>
+                Default accent uses soft bioluminescent cyan. Background motion stays blurred and quiet so the main menu remains readable.
+              </p>
+            </section>
+          </div>
+        </div>
+
+        <div class="microcopy">
+          <span><strong>Mode:</strong> clean bio-lab navigation</span>
+          <span><strong>Domain:</strong> microscopic.game</span>
+        </div>
+      </aside>
+    </main>
+  </div>
+</body>
+</html>

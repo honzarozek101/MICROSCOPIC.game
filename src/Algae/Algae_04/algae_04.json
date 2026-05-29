@@ -1,0 +1,48 @@
+{
+  "type": "Algae",
+  "x": 1463,
+  "y": 467,
+  "radius": 85.88451279003334,
+  "circles": [
+    {
+      "dx": 0,
+      "dy": 0,
+      "r": 44
+    },
+    {
+      "dx": 59,
+      "dy": 27,
+      "r": 21
+    },
+    {
+      "dx": 1,
+      "dy": -42,
+      "r": 30
+    }
+  ],
+  "name": "Algae 04",
+  "instanceIndex": 3,
+  "spriteIndex": 4,
+  "spriteSubfolder": "Algae_04",
+  "spriteScale": 2.32,
+  "spriteReferenceRadius": 30,
+  "spriteRotationOffset": -0.04,
+  "spriteBodyU": 0.35,
+  "spriteBodyV": 0.563,
+  "spriteFlipX": false,
+  "spriteDebug": false,
+  "absorbImpulseTransfer": 0.12,
+  "maxStoredProjectiles": 18,
+  "productionPerProjectile": 1,
+  "productionIntervalMs": 420,
+  "maxProducedPerTick": 2,
+  "particleRadius": 3.4,
+  "particleSpeed": 1.45,
+  "particleSpread": 0.9,
+  "particleColor": "rgba(110, 226, 140, 0.88)",
+  "particleSpriteIndex": 1,
+  "particleTintGroup": "green",
+  "_presetId": "algae_04",
+  "_presetName": "Algae 04",
+  "storedProjectiles": 0
+}

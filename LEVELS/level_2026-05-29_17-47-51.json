@@ -1,0 +1,497 @@
+{
+  "version": 1,
+  "canvasRef": {
+    "width": 2074,
+    "height": 861
+  },
+  "initialView": {
+    "x": 172.83333333333326,
+    "y": 71.75,
+    "width": 1728.3333333333335,
+    "height": 717.5,
+    "paddingRatio": 0.2
+  },
+  "background": null,
+  "entities": [
+    {
+      "type": "Particle",
+      "x": 986.1527260672855,
+      "y": 344.06238412064965,
+      "radius": 11.671390411649847,
+      "spriteIndex": 1,
+      "xNorm": 0.47548,
+      "yNorm": 0.39961,
+      "xBgNorm": 0.475483,
+      "yBgNorm": 0.399608
+    },
+    {
+      "type": "Particle",
+      "x": 901.3685997587008,
+      "y": 498.77229281554526,
+      "radius": 11.671390411649847,
+      "spriteIndex": 1,
+      "xNorm": 0.4346,
+      "yNorm": 0.57929,
+      "xBgNorm": 0.434604,
+      "yBgNorm": 0.579294
+    },
+    {
+      "type": "Particle",
+      "x": 1095.93684837587,
+      "y": 622.6373999025521,
+      "radius": 11.671390411649847,
+      "spriteIndex": 1,
+      "xNorm": 0.52842,
+      "yNorm": 0.72316,
+      "xBgNorm": 0.528417,
+      "yBgNorm": 0.723156
+    },
+    {
+      "type": "Particle",
+      "x": 1360.0321015359627,
+      "y": 320.30353460324824,
+      "radius": 11.671390411649847,
+      "spriteIndex": 1,
+      "xNorm": 0.65575,
+      "yNorm": 0.37201,
+      "xBgNorm": 0.655753,
+      "yBgNorm": 0.372013
+    },
+    {
+      "type": "Particle",
+      "x": 1406.418152911833,
+      "y": 316.9768773167053,
+      "radius": 11.671390411649847,
+      "spriteIndex": 1,
+      "xNorm": 0.67812,
+      "yNorm": 0.36815,
+      "xBgNorm": 0.678119,
+      "yBgNorm": 0.36815
+    },
+    {
+      "type": "Particle",
+      "x": 1433.2447993665894,
+      "y": 320.33466344895595,
+      "radius": 11.671390411649847,
+      "spriteIndex": 1,
+      "xNorm": 0.69105,
+      "yNorm": 0.37205,
+      "xBgNorm": 0.691053,
+      "yBgNorm": 0.37205
+    },
+    {
+      "type": "Player",
+      "x": 1435.299805361949,
+      "y": 381.4375547563805,
+      "radius": 12.98491879350348,
+      "clickForce": 3.8,
+      "absorptionFactor": 1.009,
+      "splitRadius": 23,
+      "splitChildRadius": 19,
+      "splitMinParentRadius": 18,
+      "splitLaunchSpeed": 3.2,
+      "splitParentKick": 1.4,
+      "xNorm": 0.69204,
+      "yNorm": 0.44302,
+      "xBgNorm": 0.692044,
+      "yBgNorm": 0.443017,
+      "collisionProfile": {
+        "version": 1,
+        "defaults": {
+          "enabled": true,
+          "bounceScale": 1,
+          "bodyImpulseScale": 1,
+          "playerTransferScale": 1
+        },
+        "byType": {
+          "Particle": {
+            "enabled": true,
+            "absorptionEnabled": true,
+            "captureEnabled": true
+          },
+          "Projectile": {
+            "enabled": true,
+            "bounceScale": 0.65,
+            "playerTransferScale": 1
+          },
+          "Enemy": {
+            "enabled": true,
+            "bounceScale": 1
+          },
+          "Macrophage": {
+            "enabled": true,
+            "bounceScale": 1
+          },
+          "Obstacle": {
+            "enabled": true,
+            "bounceScale": 1
+          },
+          "Stone": {
+            "enabled": true,
+            "bounceScale": 1,
+            "bodyImpulseScale": 1
+          },
+          "ComposedStone": {
+            "enabled": true,
+            "bounceScale": 1,
+            "bodyImpulseScale": 0.8
+          },
+          "Algae": {
+            "enabled": true,
+            "bounceScale": 0.8,
+            "bodyImpulseScale": 1
+          },
+          "Oldbody": {
+            "enabled": true,
+            "bounceScale": 4.2,
+            "bodyImpulseScale": 1
+          },
+          "Stentor": {
+            "enabled": true,
+            "bounceScale": 1
+          },
+          "Egg": {
+            "enabled": true,
+            "bounceScale": 1,
+            "bodyImpulseScale": 4
+          }
+        }
+      }
+    },
+    {
+      "type": "Algae",
+      "x": 1711.2169373549884,
+      "y": 283.6705336426914,
+      "radius": 85.78487878447646,
+      "name": "Algae 04",
+      "instanceIndex": 5,
+      "spriteIndex": 4,
+      "spriteSubfolder": "Algae_04",
+      "spriteScale": 2.32,
+      "spriteReferenceRadius": 30,
+      "spriteRotationOffset": -0.04,
+      "spriteBodyU": 0.35,
+      "spriteBodyV": 0.563,
+      "spriteFlipX": false,
+      "spriteDebug": false,
+      "absorbImpulseTransfer": 0.12,
+      "maxStoredProjectiles": 18,
+      "productionPerProjectile": 1,
+      "productionIntervalMs": 420,
+      "maxProducedPerTick": 2,
+      "particleRadius": 3.4,
+      "particleSpeed": 1.45,
+      "particleSpread": 0.9,
+      "particleColor": "rgba(110, 226, 140, 0.88)",
+      "particleSpriteIndex": 1,
+      "particleTintGroup": "green",
+      "_presetId": "algae_04",
+      "_presetName": "Algae 04",
+      "storedProjectiles": 0,
+      "germination": {
+        "enabled": true,
+        "mirrorOffspringX": true,
+        "bodyCircleIndex": 2,
+        "angleDeg": -160.201,
+        "feedCount": 10,
+        "startScale": 0.34,
+        "growthRate": 0.077,
+        "detachScale": 0.6,
+        "launchSpeed": 0.38,
+        "launchJitter": 0.18,
+        "initialAngleJitterDeg": 8
+      },
+      "xNorm": 0.82508,
+      "yNorm": 0.32947,
+      "xBgNorm": 0.82508,
+      "yBgNorm": 0.329466,
+      "circles": [
+        {
+          "dxNorm": 0,
+          "dyNorm": 0,
+          "dxBgNorm": 0,
+          "dyBgNorm": 0,
+          "r": 41.951276102088165
+        },
+        {
+          "dxNorm": 0.02841,
+          "dyNorm": 0.03132,
+          "dxBgNorm": 0.028414,
+          "dyBgNorm": 0.031323,
+          "r": 20.975638051044083
+        },
+        {
+          "dxNorm": 0.00048,
+          "dyNorm": -0.04872,
+          "dxBgNorm": 0.000482,
+          "dyBgNorm": -0.048724,
+          "r": 29.965197215777263
+        }
+      ]
+    },
+    {
+      "type": "Enemy",
+      "x": 826.2447795823666,
+      "y": 271.6844547563805,
+      "radius": 73.91415313225058,
+      "instanceIndex": 1,
+      "spriteIndex": 1,
+      "spriteSubfolder": "",
+      "color": "rgba(255, 140, 0, 0.7)",
+      "speed": 0.6,
+      "velocityDamping": 0.952,
+      "maxGlideSpeed": 1.35,
+      "kickImpulse": 1.1,
+      "kickCooldownMs": 760,
+      "searchKickImpulse": 0.5,
+      "searchKickCooldownMs": 1650,
+      "trackingFOVDeg": 42,
+      "trackingKickJitterDeg": 14,
+      "scanTurnRate": 0.014,
+      "scanRetargetMs": 850,
+      "scanSweepAngleDeg": 115,
+      "bounceForce": 3,
+      "projectileBounceStrength": 0.5,
+      "chaseRadius": 800,
+      "chaseBias": 1,
+      "wanderJitter": 0.02,
+      "mouthTurnRate": 0.03,
+      "mouthReturnRate": 0.04,
+      "mouthMinTargetDistance": 18,
+      "mouthAbsorbRadius": 2,
+      "mouthIdleSpin": 0,
+      "mouthRestAngle": 0,
+      "mouthPointRadius": 5.5,
+      "mouthLineWidth": 3,
+      "mouthLineColor": "rgba(255, 220, 130, 0.95)",
+      "mouthInletColor": "rgba(255, 255, 255, 0.9)",
+      "preLaySlowdownMs": 1800,
+      "preLayFriction": 0.94,
+      "eggGrowthRate": 0.08,
+      "eggTargetRadius": 14,
+      "eggDetachSpeed": 0.5,
+      "eggHatchEnemyRadius": 12,
+      "gitMaxParticles": 5,
+      "gitShowCount": true,
+      "gitCountFontSize": 10,
+      "gitCountColor": "rgba(255, 255, 255, 0.70)",
+      "gitCircleFillColor": "rgba(200, 80, 0, 0.30)",
+      "gitCircleBorderColor": "rgba(255, 190, 80, 0.55)",
+      "gitCircleBorderWidth": 1.5,
+      "gitCircleOffsetAngleDeg": 131.4677054161091,
+      "gitCircleOffsetDistanceMul": 0.7754684721839769,
+      "gitCircleRadiusMul": 0.2972972972972973,
+      "gitParticleRadius": 2.6,
+      "gitParticleSpeed": 1.6,
+      "gitParticleMinSpeed": 0.3,
+      "gitParticleFriction": 0.985,
+      "gitParticleWallRestitution": 0.9,
+      "spriteScale": 1.26,
+      "spriteRotationOffset": 0.25,
+      "spriteBodyU": 0.41,
+      "spriteBodyV": 0.423,
+      "spriteMouthU": 0.751,
+      "spriteMouthV": 0.327,
+      "spriteAnimationEnabled": true,
+      "spriteAnimationSubfolder": "",
+      "spriteAnimationFrames": 5,
+      "spriteAnimationStart": 1,
+      "spriteAnimationFps": 12,
+      "spriteAnimationPadding": 5,
+      "spriteDebug": false,
+      "version": 1,
+      "_presetId": "enemy_01",
+      "_presetName": "Enemy 01",
+      "bodyCircles": [
+        {
+          "dxR": 0,
+          "dyR": 0,
+          "rR": 1
+        },
+        {
+          "dxR": 0.4125,
+          "dyR": -0.175,
+          "rR": 0.4297
+        }
+      ],
+      "innerArtifacts": [],
+      "xNorm": 0.39838,
+      "yNorm": 0.31555,
+      "spriteFlipX": false,
+      "spriteAnimationMode": "loop",
+      "xBgNorm": 0.398382,
+      "yBgNorm": 0.315545
+    },
+    {
+      "type": "Algae",
+      "x": 892.1682134570766,
+      "y": 617.2830626450116,
+      "radius": 107.61103184647791,
+      "name": "Algae 01",
+      "instanceIndex": 1,
+      "spriteIndex": 1,
+      "spriteSubfolder": "Algae_01",
+      "spriteScale": 2.99,
+      "spriteReferenceRadius": 30,
+      "spriteRotationOffset": -0.61,
+      "spriteBodyU": 0.441,
+      "spriteBodyV": 0.5,
+      "spriteFlipX": false,
+      "spriteDebug": false,
+      "absorbImpulseTransfer": 0.12,
+      "maxStoredProjectiles": 18,
+      "productionPerProjectile": 1,
+      "productionIntervalMs": 420,
+      "maxProducedPerTick": 2,
+      "particleRadius": 3.4,
+      "particleSpeed": 1.45,
+      "particleSpread": 0.9,
+      "particleColor": "rgba(110, 226, 140, 0.88)",
+      "particleSpriteIndex": 1,
+      "particleTintGroup": "green",
+      "_presetId": "algae_01",
+      "_presetName": "Algae 01",
+      "storedProjectiles": 0,
+      "germination": {
+        "enabled": false,
+        "mirrorOffspringX": false,
+        "bodyCircleIndex": 2,
+        "angleDeg": -30,
+        "feedCount": 10,
+        "startScale": 0.34,
+        "growthRate": 0.08,
+        "detachScale": 0.6,
+        "launchSpeed": 0.35,
+        "launchJitter": 0.18,
+        "initialAngleJitterDeg": 8
+      },
+      "xNorm": 0.43017,
+      "yNorm": 0.71694,
+      "xBgNorm": 0.430168,
+      "yBgNorm": 0.716937,
+      "circles": [
+        {
+          "dxNorm": 0,
+          "dyNorm": 0,
+          "dxBgNorm": 0,
+          "dyBgNorm": 0,
+          "r": 59.930394431554525
+        },
+        {
+          "dxNorm": 0.03323,
+          "dyNorm": 0.03016,
+          "dxBgNorm": 0.03323,
+          "dyBgNorm": 0.030162,
+          "r": 33.96055684454756
+        },
+        {
+          "dxNorm": -0.02023,
+          "dyNorm": -0.06497,
+          "dxBgNorm": -0.020227,
+          "dyBgNorm": -0.064965,
+          "r": 28.966357308584687
+        },
+        {
+          "dxNorm": -0.00433,
+          "dyNorm": 0.07077,
+          "dxBgNorm": -0.004334,
+          "dyBgNorm": 0.070766,
+          "r": 15.981438515081207
+        },
+        {
+          "dxNorm": 0.04527,
+          "dyNorm": -0.01276,
+          "dxBgNorm": 0.04527,
+          "dyBgNorm": -0.012761,
+          "r": 6.991879350348028
+        },
+        {
+          "dxNorm": -0.02504,
+          "dyNorm": 0.03016,
+          "dxBgNorm": -0.025043,
+          "dyBgNorm": 0.030162,
+          "r": 16.98027842227378
+        }
+      ]
+    },
+    {
+      "type": "ParticleZone",
+      "x": 1172.0291637030161,
+      "y": 389.72496376566124,
+      "radius": 58.93155452436195,
+      "minSize": 6,
+      "maxSize": 10,
+      "spawnIntervalMs": 1800,
+      "growthDurationMs": 1200,
+      "spawnArcCenterDeg": 0,
+      "spawnArcSpanDeg": 360,
+      "spriteIndex": 1,
+      "xNorm": 0.56511,
+      "yNorm": 0.45264,
+      "xBgNorm": 0.565106,
+      "yBgNorm": 0.452642
+    },
+    {
+      "type": "Particle",
+      "x": 1318.6728538283064,
+      "y": 472.4512761020882,
+      "radius": 13.983758700696056,
+      "spriteIndex": 1,
+      "xNorm": 0.63581,
+      "yNorm": 0.54872,
+      "xBgNorm": 0.635811,
+      "yBgNorm": 0.548724
+    },
+    {
+      "type": "Particle",
+      "x": 1313.6786542923435,
+      "y": 408.52552204176334,
+      "radius": 13.983758700696056,
+      "spriteIndex": 1,
+      "xNorm": 0.6334,
+      "yNorm": 0.47448,
+      "xBgNorm": 0.633403,
+      "yBgNorm": 0.474478
+    },
+    {
+      "type": "Particle",
+      "x": 1309.6832946635732,
+      "y": 403.53132250580046,
+      "radius": 13.983758700696056,
+      "spriteIndex": 1,
+      "xNorm": 0.63148,
+      "yNorm": 0.46868,
+      "xBgNorm": 0.631477,
+      "yBgNorm": 0.468677
+    },
+    {
+      "type": "Particle",
+      "x": 1309.6832946635732,
+      "y": 401.5336426914153,
+      "radius": 13.983758700696056,
+      "spriteIndex": 1,
+      "xNorm": 0.63148,
+      "yNorm": 0.46636,
+      "xBgNorm": 0.631477,
+      "yBgNorm": 0.466357
+    },
+    {
+      "type": "Cyst",
+      "x": 1393,
+      "y": 432,
+      "radius": 21,
+      "spriteAlpha": 0.82,
+      "displayRadius": 21,
+      "targetRadius": 21,
+      "detached": true,
+      "isCyst": true,
+      "hatching": false,
+      "hatched": false,
+      "merged": false,
+      "xNorm": 0.67165,
+      "yNorm": 0.50174,
+      "xBgNorm": 0.671649,
+      "yBgNorm": 0.501742
+    }
+  ]
+}
